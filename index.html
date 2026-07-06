@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3f7d58" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="植物綠手指" />
+  <meta name="description" content="植物照護、遊戲化學習與植物達人養成 Web App。" />
+  <link rel="manifest" href="./plant-green-thumb-manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./plant-green-thumb-icon-192.png" />
+  <link rel="apple-touch-icon" href="./plant-green-thumb-icon-192.png" />
+  <title>植物綠手指</title>
+  <style>
+    :root {
+      --bg: #f6f3ea;
+      --card: #ffffff;
+      --green: #3f7d58;
+      --green-dark: #2f6244;
+      --green-soft: #e4f0e7;
+      --text: #223026;
+      --muted: #6f7d72;
+      --warning: #bd6b2f;
+      --danger: #a53f3f;
+      --line: #e4dfd3;
+      --shadow: 0 10px 25px rgba(40, 60, 45, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 480px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 16px 104px;
+      background: linear-gradient(180deg, #f9f6ed 0%, #f1eee5 100%);
+    }
+
+    header {
+      padding: 8px 2px 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      font-size: 24px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 24px; letter-spacing: 0.5px; }
+    h2 { font-size: 22px; margin-bottom: 8px; }
+    h3 { font-size: 17px; margin-bottom: 8px; }
+    p { line-height: 1.65; }
+
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: fade 0.18s ease; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(228, 223, 211, 0.75);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin: 12px 0;
+    }
+
+    .soft-card {
+      background: var(--green-soft);
+      border: 1px solid #d3e6d7;
+      border-radius: var(--radius);
+      padding: 15px;
+      margin: 12px 0;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px 8px;
+      text-align: center;
+      border: 1px solid #e7e1d6;
+    }
+
+    .stat strong { display: block; font-size: 20px; color: var(--green-dark); }
+    .stat span { font-size: 12px; color: var(--muted); }
+
+    button, .button-like {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 15px;
+      background: var(--green);
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.secondary { background: #eef3ec; color: var(--green-dark); }
+    button.light { background: #fff; color: var(--green-dark); border: 1px solid #dce6dc; }
+    button.danger { background: #fff0ed; color: var(--danger); border: 1px solid #efc8c1; }
+    button.full { width: 100%; margin-top: 10px; }
+    button.small { padding: 8px 12px; font-size: 13px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin: 14px 0 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #ded8cd;
+      border-radius: 15px;
+      padding: 12px 13px;
+      font-size: 16px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea { min-height: 84px; resize: vertical; }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #ddd6ca;
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .pill.active {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+
+    .plant-title { font-size: 18px; font-weight: 800; }
+    .meta { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .warning { color: var(--warning); font-weight: 700; }
+    .danger-text { color: var(--danger); font-weight: 700; }
+
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--muted);
+    }
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(480px, 100%);
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      z-index: 10;
+    }
+
+    .nav button {
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 2px;
+      border-radius: 14px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav button.active {
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .nav .icon { font-size: 18px; }
+
+    .knowledge-item, .symptom-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    .knowledge-item:last-child, .symptom-item:last-child { border-bottom: 0; }
+
+    .list-log {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .list-log:last-child { border-bottom: 0; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%);
+      width: min(420px, calc(100% - 32px));
+      background: #203427;
+      color: #fff;
+      border-radius: 18px;
+      padding: 13px 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      display: none;
+      z-index: 20;
+      font-size: 14px;
+    }
+
+    .toast.show { display: block; animation: fade 0.15s ease; }
+
+
+    .game-card {
+      background: linear-gradient(135deg, #e9f5df 0%, #ffffff 100%);
+      border: 1px solid rgba(63, 125, 88, 0.18);
+    }
+
+    .level-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .level-pill, .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .xp-bar {
+      height: 10px;
+      background: #dfe7d8;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0 8px;
+    }
+
+    .xp-fill {
+      height: 100%;
+      width: var(--xp, 0%);
+      background: var(--green);
+      border-radius: 999px;
+    }
+
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .badge-pill.locked {
+      background: #f1eee5;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+
+    .academy-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .skill-card {
+      background: #fff;
+      border: 1px solid #e7e1d6;
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .skill-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .mini-bar {
+      height: 8px;
+      background: #e9e4d9;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .mini-fill {
+      height: 100%;
+      width: var(--value, 0%);
+      background: var(--green);
+      border-radius: 999px;
+    }
+
+    .quiz-option {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      margin-top: 8px;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid #ded8cd;
+    }
+
+    .quiz-option.correct {
+      background: var(--green-soft);
+      color: var(--green-dark);
+      border-color: #b7d8bf;
+    }
+
+    .card-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+
+
+    .hero-card {
+      background: radial-gradient(circle at top left, #f3f8e8 0%, #ffffff 52%, #f9f6ed 100%);
+      border: 1px solid rgba(63, 125, 88, 0.16);
+    }
+
+    .top-quest {
+      border-left: 5px solid var(--green);
+    }
+
+    .quest-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quest-item:last-child { border-bottom: 0; }
+    .quest-check { font-size: 18px; line-height: 1.35; }
+    .quest-item.done strong { text-decoration: line-through; color: var(--muted); }
+
+    .install-steps {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(31, 49, 36, 0.36);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .onboarding-overlay.show { display: flex; }
+
+    .onboarding-panel {
+      width: min(480px, 100%);
+      background: #fff;
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.24);
+      border: 1px solid rgba(228, 223, 211, 0.9);
+    }
+
+    .onboarding-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .onboarding-step:last-child { border-bottom: 0; }
+    .step-icon { font-size: 24px; width: 30px; text-align: center; }
+
+    @media (max-width: 390px) {
+      .nav button { font-size: 11px; }
+      .nav .icon { font-size: 16px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 20px; }
+    }
+
+    .divider { height: 1px; background: var(--line); margin: 14px 0; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">🌱</div>
+        <div>
+          <h1>植物綠手指</h1>
+          <p class="subtitle">今天先看植物真正需要什麼</p>
+        </div>
+      </div>
+    </header>
+
+    <section id="screen-today" class="screen active"></section>
+    <section id="screen-plants" class="screen"></section>
+    <section id="screen-add" class="screen"></section>
+    <section id="screen-detail" class="screen"></section>
+    <section id="screen-log" class="screen"></section>
+    <section id="screen-diagnosis" class="screen"></section>
+    <section id="screen-diagnosis-result" class="screen"></section>
+    <section id="screen-knowledge" class="screen"></section>
+    <section id="screen-knowledge-detail" class="screen"></section>
+    <section id="screen-academy" class="screen"></section>
+    <section id="screen-settings" class="screen"></section>
+  </main>
+
+  <nav class="nav">
+    <button data-nav="today" class="active"><span class="icon">☀️</span>今日</button>
+    <button data-nav="plants"><span class="icon">🪴</span>植物</button>
+    <button data-nav="diagnosis"><span class="icon">🩺</span>診斷</button>
+    <button data-nav="knowledge"><span class="icon">📚</span>知識</button>
+    <button data-nav="academy"><span class="icon">🌟</span>達人</button>
+    <button data-nav="settings"><span class="icon">⚙️</span>設定</button>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+  <input id="import-file" type="file" accept="application/json,.json" class="hidden" />
+  <div id="onboarding" class="onboarding-overlay"></div>
+
+  <script>
+    const STORAGE_KEY = 'plantGreenThumb.v1';
+
+    const plantDatabase = [
+      { name: '黃金葛', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、好照顧，怕長期積水。' },
+      { name: '虎尾蘭', difficulty: '低', interval: 12, light: '明亮散射光到半日照', watering: '乾透後再澆', note: '非常耐旱，最怕太常澆水。' },
+      { name: '龜背芋', difficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '喜歡明亮環境，避免烈日直曬。' },
+      { name: '發財樹', difficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '根系怕悶濕，盆土不要長期潮濕。' },
+      { name: '白鶴芋', difficulty: '中', interval: 4, light: '明亮散射光', watering: '土表乾就檢查', note: '缺水會垂葉，但也怕積水。' },
+      { name: '吊蘭', difficulty: '低', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '適應力強，適合新手。' },
+      { name: '蘆薈', difficulty: '低', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '多肉質植物，怕過濕。' },
+      { name: '多肉植物', difficulty: '中', interval: 12, light: '明亮光到半日照', watering: '乾透再澆', note: '光線不足容易徒長。' },
+      { name: '琴葉榕', difficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '對環境變動敏感，避免頻繁移動。' },
+      { name: '薄荷', difficulty: '中', interval: 3, light: '半日照到強光', watering: '保持微濕但不積水', note: '生長快，需水量較高。' },
+      { name: '羅勒', difficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '喜歡充足光照與穩定水分，適合陽台。' },
+      { name: '迷迭香', difficulty: '中高', interval: 7, light: '強光到半日照', watering: '偏乾再澆，避免悶濕', note: '喜歡通風與排水佳的介質，怕潮濕悶根。' },
+      { name: '薰衣草', difficulty: '中高', interval: 7, light: '強光', watering: '乾透再澆', note: '需要充足日照與良好通風，台灣潮濕環境要控水。' },
+      { name: '九層塔', difficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '生長快、需光多，缺水容易萎垂。' },
+      { name: '香菜', difficulty: '中', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '怕高溫，炎熱環境容易抽苔或衰弱。' },
+      { name: '蔥', difficulty: '低', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '適合陽台栽培，保持通風與排水即可。' },
+      { name: '龜背竹', difficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '大型觀葉植物，喜歡高濕與明亮環境。' },
+      { name: '合果芋', difficulty: '低', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '適應力強，但斑葉品種需要較明亮光線。' },
+      { name: '粗肋草', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '耐陰但怕冷，適合室內明亮處。' },
+      { name: '蔓綠絨', difficulty: '低到中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '多數品種好照顧，避免長期積水。' },
+      { name: '心葉蔓綠絨', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、垂吊好看，適合室內新手。' },
+      { name: '粉紅公主蔓綠絨', difficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '斑葉品種需明亮光線，但避免烈日。' },
+      { name: '海芋', difficulty: '中高', interval: 5, light: '明亮散射光', watering: '保持微濕但不積水', note: '喜歡濕度，但塊莖與根系怕爛。' },
+      { name: '姑婆芋', difficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '葉片大、蒸散快，需注意通風與水分。' },
+      { name: '彩葉芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '葉色鮮豔但怕乾、怕冷，休眠期需少水。' },
+      { name: '竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，水分忽乾忽濕容易焦邊。' },
+      { name: '孔雀竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '怕乾燥與強光，葉緣焦枯常見。' },
+      { name: '青蘋果竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '需要穩定濕度與柔和光線。' },
+      { name: '鹿角蕨', difficulty: '中高', interval: 5, light: '明亮散射光', watering: '介質乾一半再給水', note: '喜歡通風、高濕，避免中心積水。' },
+      { name: '波士頓腎蕨', difficulty: '中高', interval: 3, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，乾燥會掉葉與焦邊。' },
+      { name: '鳥巢蕨', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '澆水避免長期積在葉心。' },
+      { name: '鐵線蕨', difficulty: '高', interval: 3, light: '明亮散射光', watering: '保持濕潤但不積水', note: '對乾燥敏感，不適合常忘記澆水的人。' },
+      { name: '常春藤', difficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '土表乾後澆透', note: '喜歡涼爽通風，悶熱環境易有蟲害。' },
+      { name: '橡皮樹', difficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '耐陰但明亮環境長得更好，怕積水。' },
+      { name: '黑金剛橡皮樹', difficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '葉厚耐旱，澆水過多容易落葉。' },
+      { name: '圓葉椒草', difficulty: '低', interval: 7, light: '明亮散射光', watering: '偏乾再澆', note: '葉片儲水，適合室內，怕過度澆水。' },
+      { name: '豆瓣綠', difficulty: '低', interval: 7, light: '明亮散射光', watering: '土壤偏乾再澆', note: '小型室內植物，水太多容易爛莖。' },
+      { name: '冷水花', difficulty: '低到中', interval: 4, light: '明亮散射光', watering: '土表乾後澆透', note: '生長快，需修剪維持株型。' },
+      { name: '觀音蓮', difficulty: '中', interval: 10, light: '明亮光到半日照', watering: '乾透再澆', note: '多肉型態，怕悶濕與光線不足。' },
+      { name: '仙人掌', difficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '非常耐旱，室內光線不足時要更少澆水。' },
+      { name: '仙人球', difficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '需充足光照，冬季或陰雨天要控水。' },
+      { name: '玉露', difficulty: '中', interval: 12, light: '明亮散射光', watering: '乾透再澆', note: '避免烈日直曬，水多易徒長或爛根。' },
+      { name: '熊童子', difficulty: '中', interval: 10, light: '明亮光', watering: '乾透再澆', note: '葉片肥厚怕悶濕，夏季高溫需小心。' },
+      { name: '石蓮花', difficulty: '中', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '光不足易徒長，葉心避免積水。' },
+      { name: '長壽花', difficulty: '低到中', interval: 7, light: '明亮光到半日照', watering: '土表乾後澆透', note: '開花植物，花期需明亮光線。' },
+      { name: '非洲菫', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '避免葉面積水，適合室內窗邊。' },
+      { name: '蝴蝶蘭', difficulty: '中', interval: 7, light: '明亮散射光', watering: '水苔偏乾再澆', note: '根需要通氣，水苔長期濕會爛根。' },
+      { name: '文心蘭', difficulty: '中', interval: 5, light: '明亮散射光', watering: '介質半乾再澆', note: '喜歡通風與明亮散射光。' },
+      { name: '玫瑰', difficulty: '中高', interval: 3, light: '強光', watering: '土表乾後澆透', note: '需要充足日照與通風，病蟲害需常檢查。' },
+      { name: '茉莉花', difficulty: '中', interval: 3, light: '強光到半日照', watering: '土表乾後澆透', note: '喜歡光照，缺光不易開花。' },
+      { name: '梔子花', difficulty: '中高', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '喜歡酸性介質與穩定水分。' },
+      { name: '日日春', difficulty: '低到中', interval: 3, light: '強光', watering: '土表乾後澆透', note: '耐熱開花，需通風避免病害。' },
+      { name: '矮牽牛', difficulty: '中', interval: 2, light: '強光', watering: '保持微濕但不積水', note: '花多需水多，炎熱天可能每天檢查。' },
+      { name: '天竺葵', difficulty: '中', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '怕悶濕，通風很重要。' },
+      { name: '繡球花', difficulty: '中高', interval: 2, light: '半日照', watering: '保持濕潤但不積水', note: '缺水會快速垂葉，夏季需遮蔭。' },
+      { name: '聖誕紅', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '怕冷與積水，環境變動易落葉。' },
+      { name: '開運竹', difficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '水耕要保持水質乾淨，避免烈日。' },
+      { name: '富貴竹', difficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '耐陰但需要乾淨水質與適度光線。' },
+      { name: '天堂鳥', difficulty: '中', interval: 7, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '大型植物，喜歡明亮環境與穩定水分。' },
+      { name: '散尾葵', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '喜歡濕度與通風，葉尖焦常和乾燥相關。' },
+      { name: '袖珍椰子', difficulty: '低到中', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '適合室內，避免強光直曬與長期積水。' },
+      { name: '酒瓶蘭', difficulty: '低', interval: 14, light: '明亮光到半日照', watering: '乾透再澆', note: '基部可儲水，非常怕太常澆。' },
+      { name: '馬拉巴栗', difficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '常被稱為發財樹，根系怕悶濕。' },
+      { name: '金錢樹', difficulty: '低', interval: 14, light: '明亮散射光', watering: '乾透再澆', note: '耐陰耐旱，過度澆水最容易出問題。' },
+      { name: '鏡面草', difficulty: '低到中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '葉片圓亮，避免強光與長期乾旱。' },
+      { name: '空氣鳳梨', difficulty: '中', interval: 4, light: '明亮散射光', watering: '浸水後徹底晾乾', note: '不需要土，但給水後一定要通風晾乾。' },
+      { name: '捕蠅草', difficulty: '中高', interval: 3, light: '強光', watering: '使用純水保持介質濕潤', note: '食蟲植物，需純水與強光，不可用一般肥料。' },
+      { name: '豬籠草', difficulty: '中高', interval: 3, light: '明亮散射光到半日照', watering: '保持介質微濕', note: '喜歡濕度與乾淨水源，避免濃肥。' },
+    ];
+
+    const symptomDatabase = {
+      '葉子變黃': {
+        severity: '中等',
+        causes: ['澆水過多', '光照不足', '根系受損', '正常老葉代謝'],
+        today: ['先不要施肥', '檢查土壤是否長期潮濕', '觀察莖部是否變軟', '剪除明顯黃化老葉'],
+        plan: '接下來 7 天每 2 天檢查一次土壤濕度與新葉狀態。如果新葉正常、黃葉沒有增加，可先維持原照護。',
+        warning: '如果葉子快速大量變黃、莖部軟爛、土壤有臭味，可能需要檢查根系。'
+      },
+      '葉尖焦枯': {
+        severity: '低到中等',
+        causes: ['空氣乾燥', '澆水不穩定', '肥料過量', '強光灼傷'],
+        today: ['剪掉焦枯葉尖', '確認是否靠近冷氣或熱源', '暫停施肥一次', '觀察日照是否過強'],
+        plan: '維持穩定澆水，不要忽乾忽濕。觀察新葉是否仍持續焦枯。',
+        warning: '如果新葉也快速焦枯，需檢查根系與肥傷可能。'
+      },
+      '葉片下垂': {
+        severity: '中等',
+        causes: ['缺水', '澆水過多導致根系缺氧', '環境突然改變', '高溫或低溫壓力'],
+        today: ['先摸土，不要直接澆水', '土乾才澆透', '土濕則停止澆水並通風', '避免立刻施肥'],
+        plan: '24–48 小時觀察葉片是否回彈。若土壤濕但持續下垂，需懷疑根系問題。',
+        warning: '土壤潮濕又下垂，且莖部變軟時，要警覺爛根。'
+      },
+      '莖部軟爛': {
+        severity: '高',
+        causes: ['爛根', '長期積水', '通風不良', '病害感染'],
+        today: ['立即停止澆水', '移到通風明亮處', '檢查根系與莖基部', '必要時剪除腐爛部位'],
+        plan: '接下來保持乾爽與通風。若軟爛擴大，需換盆、修根或扦插健康部分。',
+        warning: '這是高風險訊號，請不要再加水或施肥。'
+      },
+      '土壤發霉': {
+        severity: '低到中等',
+        causes: ['土壤長期潮濕', '通風不足', '有機質過多', '光照不足'],
+        today: ['刮除表面霉層', '增加通風', '延後澆水', '確認盆底是否排水順暢'],
+        plan: '之後每次澆水前先確認土壤乾濕。若反覆發霉，考慮換成排水較好的介質。',
+        warning: '若同時出現臭味、黑根、莖軟，可能不是單純表面發霉。'
+      },
+      '小黑飛': {
+        severity: '中等',
+        causes: ['土壤過濕', '有機質腐敗', '幼蟲在潮濕介質中繁殖'],
+        today: ['減少澆水', '讓表土乾燥', '使用黃色黏蟲板', '移除腐爛葉片'],
+        plan: '連續 1–2 週控制澆水，讓表土不再長期潮濕。',
+        warning: '若數量很多，代表介質環境太濕，需調整澆水與土壤。'
+      },
+      '介殼蟲': {
+        severity: '中到高',
+        causes: ['害蟲感染', '通風不良', '植株壓力大'],
+        today: ['先隔離植物', '用棉花棒沾酒精清除可見蟲體', '檢查葉背與莖節', '避免和其他植物接觸'],
+        plan: '每 3 天檢查一次，連續清除數週。觀察是否有新蟲出現。',
+        warning: '介殼蟲容易復發，需隔離並持續追蹤。'
+      },
+      '生長停滯': {
+        severity: '低到中等',
+        causes: ['季節性休眠', '光照不足', '根系太滿', '養分不足'],
+        today: ['先確認季節與光照', '不要急著大量施肥', '觀察根是否塞滿盆器', '確認近期是否有新芽'],
+        plan: '若在生長季仍完全停滯，可逐步增加光照或檢查是否需要換盆。',
+        warning: '若同時黃葉、爛根、蟲害，就不是單純生長慢。'
+      }
+    };
+
+
+    const titleStages = [
+      { min: 1, max: 5, title: '種子新手', ability: '知道不要亂澆水' },
+      { min: 6, max: 10, title: '發芽學徒', ability: '會觀察土壤與葉片' },
+      { min: 11, max: 20, title: '綠葉園丁', ability: '能照顧常見室內植物' },
+      { min: 21, max: 30, title: '植物照護員', ability: '能判斷光照與水分問題' },
+      { min: 31, max: 40, title: '植物診斷師', ability: '能初步分辨病蟲害' },
+      { min: 41, max: 50, title: '盆栽管理師', ability: '會修剪、換盆與施肥' },
+      { min: 51, max: 60, title: '室內植栽師', ability: '能規劃空間與植物配置' },
+      { min: 61, max: 70, title: '植物顧問', ability: '能給出基本照護建議' },
+      { min: 71, max: 90, title: '綠手指大師', ability: '能挑戰高難度植物' },
+      { min: 91, max: 100, title: '植物達人', ability: '能建立自己的照護系統' }
+    ];
+
+    const quizBank = [
+      { q: '黃金葛葉子變黃，土壤摸起來一直濕，最應先懷疑什麼？', options: ['缺肥', '澆水過多或根部缺氧', '需要每天曬太陽', '盆器太漂亮'], answer: 1, explain: '土壤長期潮濕時，黃葉常見原因是根部缺氧或爛根風險，這時不應先施肥。' },
+      { q: '虎尾蘭最常被新手照顧失敗的原因是？', options: ['太常澆水', '太少說話', '葉片太硬', '盆太小就一定會死'], answer: 0, explain: '虎尾蘭耐旱，最怕長期潮濕。乾透後再澆通常比頻繁澆水安全。' },
+      { q: '澆水前最穩妥的第一步是？', options: ['固定每天澆', '先摸土或檢查盆重', '先施肥', '把植物搬來搬去'], answer: 1, explain: '澆水不應只看日曆，要先確認土壤與植物狀態。' },
+      { q: '葉尖焦枯不一定代表缺水，也可能代表？', options: ['空氣太乾或肥傷', '植物在睡覺', '必須每天噴很多水', '完全不用處理'], answer: 0, explain: '葉尖焦枯可能與乾燥、鹽分累積、肥傷或根系問題有關，需要綜合判斷。' },
+      { q: '看到植物生病時，最不建議第一時間做什麼？', options: ['觀察土壤', '檢查葉背', '立刻大量施肥', '隔離疑似蟲害植物'], answer: 2, explain: '病弱植物先大量施肥可能加重壓力，應先判斷水分、光照、根系與蟲害。' },
+      { q: '植物徒長通常和哪個因素最相關？', options: ['光線不足', '水太冷', '盆器顏色', '名字不好聽'], answer: 0, explain: '光線不足時，植物常拉長節間尋找光源，形成徒長。' },
+      { q: '換盆後短時間內最重要的是？', options: ['立刻強光曝曬', '大量施肥', '穩定環境並觀察恢復', '每天拔起來看根'], answer: 2, explain: '換盆是壓力事件，應給穩定光線、適當水分與通風，避免再刺激。' },
+      { q: '介殼蟲常躲在哪裡？', options: ['葉背與莖節', '盆器外標籤', '桌子下面', '空氣裡'], answer: 0, explain: '介殼蟲常見於葉背、葉柄、莖節等隱蔽處，需要反覆檢查。' },
+      { q: '真正的綠手指最重要的能力是？', options: ['每天做很多事', '知道什麼時候不出手', '所有植物都用同一套方法', '只看漂亮照片'], answer: 1, explain: '植物照護常常是觀察與等待。正確的不行動，也是照護的一部分。' },
+      { q: '多肉植物在室內光線不足時，最容易出現？', options: ['徒長', '立刻開花', '變成水草', '完全不用光'], answer: 0, explain: '多肉需要足夠光線，光不足時常變瘦、拉長、株型鬆散。' }
+    ];
+
+    const knowledgeCards = [
+      { id: 'K001', title: '澆水前先摸土', text: '很多植物不是忘記澆水死掉，而是太常澆水。手指插入土壤約 2 公分，如果仍潮濕，今天先不要澆。' },
+      { id: 'K002', title: '黃葉先別急著施肥', text: '黃葉可能來自過濕、缺光、根系受損或自然老葉代謝。先判斷水分與根系，再考慮肥料。' },
+      { id: 'K003', title: '光照不是只有有或沒有', text: '植物需要的是合適的光線強度與時間。明亮散射光通常比陰暗角落更適合多數室內觀葉。' },
+      { id: 'K004', title: '根也需要空氣', text: '排水不良或長期積水會讓根缺氧。土壤不是越濕越好，通氣同樣重要。' },
+      { id: 'K005', title: '新手先練習觀察', text: '觀察葉色、葉片硬度、土壤乾濕、盆重與新芽，比急著買肥料更重要。' },
+      { id: 'K006', title: '蟲害要先隔離', text: '發現介殼蟲、小黑飛或不明蟲害時，先把植物和其他盆栽分開，避免擴散。' },
+      { id: 'K007', title: '不要頻繁搬動敏感植物', text: '琴葉榕、竹芋等植物對環境變動較敏感。穩定光線與位置，常比反覆調整更好。' },
+      { id: 'K008', title: '施肥不是急救藥', text: '植物虛弱、爛根、蟲害或剛換盆時，不一定適合施肥。先讓環境與根系穩定。' },
+      { id: 'K009', title: '澆透不等於一直濕', text: '澆透是讓水均勻通過根系與介質；下一次澆水前，仍要等待合適乾燥程度。' },
+      { id: 'K010', title: '真正的綠手指會記錄', text: '記錄澆水、光照、葉況與變化，可以讓你從猜測變成判斷。' }
+    ];
+
+    const skillDefs = [
+      { key: 'water', icon: '💧', name: '澆水判斷', desc: '能判斷何時澆水、何時不要澆。' },
+      { key: 'light', icon: '☀️', name: '光照判斷', desc: '能辨認缺光、曬傷與徒長。' },
+      { key: 'soil', icon: '🪴', name: '土壤介質', desc: '理解排水、通氣與根系健康。' },
+      { key: 'growth', icon: '🌿', name: '施肥生長', desc: '知道何時施肥、修剪與換盆。' },
+      { key: 'diagnosis', icon: '🩺', name: '病蟲害診斷', desc: '能初步判斷葉黃、爛根與蟲害。' },
+      { key: 'record', icon: '📓', name: '觀察紀錄', desc: '用紀錄建立自己的照護系統。' }
+    ];
+
+    let appData = loadData();
+    let selectedPlantId = null;
+    let selectedKnowledge = null;
+    let selectedSymptom = null;
+
+    function blankData() {
+      return {
+        appName: '植物綠手指',
+        version: '1.4.0',
+        plants: [],
+        careLogs: [],
+        settings: { theme: 'light', reminderPreference: 'basic', onboardingCompleted: false, academy: { answeredQuizDates: {}, readCards: {} } }
+      };
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return blankData();
+      try {
+        const parsed = JSON.parse(raw);
+        return { ...blankData(), ...parsed, plants: parsed.plants || [], careLogs: parsed.careLogs || [], settings: { ...blankData().settings, ...(parsed.settings || {}), academy: { ...blankData().settings.academy, ...((parsed.settings || {}).academy || {}) } } };
+      } catch {
+        return blankData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    function uid(prefix) {
+      return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+    }
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '尚未記錄';
+      const d = new Date(dateString + 'T00:00:00');
+      return `${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+    }
+
+    function addDays(dateString, days) {
+      const d = new Date(dateString + 'T00:00:00');
+      d.setDate(d.getDate() + Number(days || 0));
+      return d.toISOString().slice(0, 10);
+    }
+
+    function daysBetween(a, b) {
+      const da = new Date(a + 'T00:00:00');
+      const db = new Date(b + 'T00:00:00');
+      return Math.floor((da - db) / 86400000);
+    }
+
+    function getPlantInfo(name) {
+      return plantDatabase.find(p => p.name === name) || plantDatabase[0];
+    }
+
+    function nextWaterDate(plant) {
+      return addDays(plant.lastWateredAt || todayISO(), plant.waterIntervalDays || getPlantInfo(plant.name).interval);
+    }
+
+    function plantNeedsWater(plant) {
+      return todayISO() >= nextWaterDate(plant);
+    }
+
+    function careXp(type) {
+      const xpMap = { '觀察': 5, '澆水': 10, '施肥': 12, '修剪': 12, '換盆': 20, '除蟲': 18, '小測驗': 8, '知識卡': 4, '學習': 2 };
+      return xpMap[type] || 5;
+    }
+
+    function gameStats() {
+      const xp = appData.careLogs.reduce((sum, log) => sum + careXp(log.type), 0) + appData.plants.length * 15;
+      const level = Math.floor(xp / 100) + 1;
+      const currentXp = xp % 100;
+      const nextXp = 100 - currentXp;
+      const uniqueDates = [...new Set(appData.careLogs.map(l => l.date).filter(Boolean))].sort().reverse();
+      let streak = 0;
+      let cursor = new Date(todayISO() + 'T00:00:00');
+      const dateSet = new Set(uniqueDates);
+      if (!dateSet.has(todayISO())) cursor.setDate(cursor.getDate() - 1);
+      while (dateSet.has(cursor.toISOString().slice(0, 10))) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      const readCount = Object.values(academySettings().readCards || {}).filter(Boolean).length;
+      const quizCount = appData.careLogs.filter(l => l.type === '小測驗').length;
+      const badges = [
+        { name: '第一盆夥伴', icon: '🌱', unlocked: appData.plants.length >= 1 },
+        { name: '照護起步', icon: '💧', unlocked: appData.careLogs.length >= 1 },
+        { name: '不亂澆水的人', icon: '🖐️', unlocked: appData.careLogs.filter(l => l.type === '觀察').length >= 5 },
+        { name: '葉片觀察者', icon: '👀', unlocked: appData.careLogs.filter(l => l.type === '觀察').length >= 10 },
+        { name: '植物小隊', icon: '🪴', unlocked: appData.plants.length >= 3 },
+        { name: '七日園丁', icon: '🏅', unlocked: streak >= 7 },
+        { name: '知識收藏家', icon: '📚', unlocked: readCount >= 5 },
+        { name: '植物小博士', icon: '🧠', unlocked: quizCount >= 5 },
+        { name: '紀錄達人', icon: '📓', unlocked: appData.careLogs.length >= 20 }
+      ];
+      const title = titleForLevel(level);
+      return { xp, level, currentXp, nextXp, streak, badges, unlockedBadges: badges.filter(b => b.unlocked), title };
+    }
+
+    function alreadyObservedToday(id) {
+      return appData.careLogs.some(l => l.plantId === id && l.type === '觀察' && l.date === todayISO());
+    }
+
+
+
+    function academySettings() {
+      if (!appData.settings) appData.settings = blankData().settings;
+      if (!appData.settings.academy) appData.settings.academy = blankData().settings.academy;
+      if (!appData.settings.academy.answeredQuizDates) appData.settings.academy.answeredQuizDates = {};
+      if (!appData.settings.academy.readCards) appData.settings.academy.readCards = {};
+      return appData.settings.academy;
+    }
+
+    function titleForLevel(level) {
+      return titleStages.find(s => level >= s.min && level <= s.max) || titleStages[titleStages.length - 1];
+    }
+
+    function dailyIndex(length, salt = 0) {
+      const digits = todayISO().replaceAll('-', '');
+      return (Number(digits) + salt) % length;
+    }
+
+    function dailyQuiz() {
+      return quizBank[dailyIndex(quizBank.length, 3)];
+    }
+
+    function dailyKnowledgeCard() {
+      return knowledgeCards[dailyIndex(knowledgeCards.length, 7)];
+    }
+
+    function answeredQuizToday() {
+      return academySettings().answeredQuizDates[todayISO()];
+    }
+
+    function skillProgress(skillKey) {
+      const logs = appData.careLogs;
+      const observations = logs.filter(l => l.type === '觀察').length;
+      const waters = logs.filter(l => l.type === '澆水').length;
+      const diagnostics = logs.filter(l => (l.note || '').includes('診斷') || l.type === '除蟲').length;
+      const quizzes = logs.filter(l => l.type === '小測驗').length;
+      const reads = Object.values(academySettings().readCards || {}).filter(Boolean).length;
+      const plants = appData.plants.length;
+      const map = {
+        water: Math.min(100, observations * 10 + waters * 8),
+        light: Math.min(100, observations * 8 + reads * 6),
+        soil: Math.min(100, waters * 6 + plants * 8 + reads * 5),
+        growth: Math.min(100, logs.filter(l => ['施肥','修剪','換盆'].includes(l.type)).length * 18 + reads * 5),
+        diagnosis: Math.min(100, diagnostics * 18 + quizzes * 10),
+        record: Math.min(100, logs.length * 5)
+      };
+      return map[skillKey] || 0;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function escapeHTML(str) {
+      return String(str ?? '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    }
+
+    function setScreen(name) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(`screen-${name}`).classList.add('active');
+      document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+      const navMap = { today: 'today', plants: 'plants', add: 'plants', detail: 'plants', log: 'plants', diagnosis: 'diagnosis', 'diagnosis-result': 'diagnosis', knowledge: 'knowledge', 'knowledge-detail': 'knowledge', academy: 'academy', settings: 'settings' };
+      const activeNav = document.querySelector(`[data-nav="${navMap[name]}"]`);
+      if (activeNav) activeNav.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderAll() {
+      renderToday();
+      renderPlants();
+      renderAdd();
+      renderDiagnosis();
+      renderKnowledge();
+      renderAcademy();
+      renderSettings();
+      renderOnboarding();
+      if (selectedPlantId) renderDetail(selectedPlantId);
+      if (selectedPlantId) renderLog(selectedPlantId);
+      if (selectedKnowledge) renderKnowledgeDetail(selectedKnowledge);
+      if (selectedSymptom) renderDiagnosisResult(selectedSymptom);
+    }
+
+
+
+
+    function starterQuestStatus() {
+      const quizDone = Boolean(answeredQuizToday());
+      const card = dailyKnowledgeCard();
+      const readDone = Boolean(academySettings().readCards[card.id]);
+      const observeDone = appData.careLogs.some(l => l.type === '觀察');
+      return [
+        { icon: '🪴', title: '新增第一盆植物', desc: '建立自己的植物清單。', done: appData.plants.length > 0, action: "setScreen('add')", button: '新增植物' },
+        { icon: '👀', title: '完成一次觀察', desc: '先觀察，再決定要不要出手。', done: observeDone, action: appData.plants[0] ? `quickObserve('${appData.plants[0].id}')` : "setScreen('add')", button: appData.plants[0] ? '完成觀察' : '先新增植物' },
+        { icon: '🧠', title: '完成今日小測驗', desc: '用情境題練習植物判斷。', done: quizDone, action: "setScreen('academy')", button: '去測驗' },
+        { icon: '📗', title: '收藏今日知識卡', desc: '每天建立一個照護觀念。', done: readDone, action: "setScreen('academy')", button: '看知識卡' }
+      ];
+    }
+
+    function renderStarterQuest() {
+      const quests = starterQuestStatus();
+      const done = quests.filter(q => q.done).length;
+      return `
+        <div class="card top-quest">
+          <div class="row">
+            <div>
+              <h3>新手任務線</h3>
+              <p class="hint">完成這 4 步，就能開始真正的植物達人養成。</p>
+            </div>
+            <span class="level-pill">${done}/4</span>
+          </div>
+          <div class="mini-bar"><div class="mini-fill" style="--value:${done * 25}%"></div></div>
+          ${quests.map(q => `<div class="quest-item ${q.done ? 'done' : ''}">
+            <div class="quest-check">${q.done ? '✅' : q.icon}</div>
+            <div style="flex:1"><strong>${q.title}</strong><p class="hint">${q.desc}</p></div>
+            ${q.done ? '' : `<button class="small secondary" onclick="${q.action}">${q.button}</button>`}
+          </div>`).join('')}
+        </div>`;
+    }
+
+    function renderOnboarding() {
+      const el = document.getElementById('onboarding');
+      const completed = appData.settings && appData.settings.onboardingCompleted;
+      if (completed) { el.classList.remove('show'); el.innerHTML = ''; return; }
+      el.innerHTML = `
+        <div class="onboarding-panel">
+          <h2>歡迎來到植物綠手指</h2>
+          <p class="subtitle">這不是催你每天澆水的 App，而是訓練你看懂植物需要什麼。</p>
+          <div class="onboarding-step"><div class="step-icon">🪴</div><div><strong>1. 新增第一盆植物</strong><p class="hint">建立清單後，首頁會幫你整理今日照護。</p></div></div>
+          <div class="onboarding-step"><div class="step-icon">👀</div><div><strong>2. 先觀察，再行動</strong><p class="hint">我們獎勵觀察與判斷，不鼓勵亂澆水。</p></div></div>
+          <div class="onboarding-step"><div class="step-icon">🌟</div><div><strong>3. 進入達人學院</strong><p class="hint">用小測驗、知識卡與技能樹慢慢變強。</p></div></div>
+          <button class="full" onclick="finishOnboarding()">開始使用</button>
+        </div>`;
+      el.classList.add('show');
+    }
+
+    function finishOnboarding() {
+      appData.settings.onboardingCompleted = true;
+      saveData();
+      renderAll();
+      setScreen('add');
+      showToast('先新增你的第一盆植物吧。');
+    }
+
+    function resetOnboarding() {
+      appData.settings.onboardingCompleted = false;
+      saveData();
+      renderOnboarding();
+    }
+
+    function renderDailyTraining() {
+      const quiz = dailyQuiz();
+      const card = dailyKnowledgeCard();
+      const answered = answeredQuizToday();
+      const read = academySettings().readCards[card.id];
+      return `
+        <div class="card game-card">
+          <h3>今日修煉</h3>
+          <p class="hint">真正的綠手指，知道什麼時候不出手。</p>
+          <div class="divider"></div>
+          <p>🧠 今日小測驗：${answered ? '已完成' : quiz.q}</p>
+          <p class="hint">📗 今日知識卡：${card.id}｜${escapeHTML(card.title)} ${read ? '（已閱讀）' : ''}</p>
+          <div class="actions">
+            <button class="small" onclick="setScreen('academy')">進入達人學院</button>
+          </div>
+        </div>`;
+    }
+
+    function renderAcademy() {
+      const g = gameStats();
+      const quiz = dailyQuiz();
+      const answered = answeredQuizToday();
+      const card = dailyKnowledgeCard();
+      const read = academySettings().readCards[card.id];
+      document.getElementById('screen-academy').innerHTML = `
+        <h2>植物達人養成</h2>
+        <p class="subtitle">每天學一點，從照護紀錄變成判斷能力。</p>
+        <div class="card game-card">
+          <div class="level-row">
+            <div>
+              <h3>Lv.${g.level}｜${g.title.title}</h3>
+              <p class="hint">目前能力：${g.title.ability}</p>
+            </div>
+            <span class="level-pill">${g.xp} XP</span>
+          </div>
+          <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
+          <p class="hint">距離下一級還差 ${g.nextXp} XP。</p>
+        </div>
+
+        <div class="card">
+          <h3>今日植物小測驗</h3>
+          ${answered ? `<p>今天已完成小測驗。</p><p class="hint">${escapeHTML(answered.explain || '')}</p>` : `
+            <p>${escapeHTML(quiz.q)}</p>
+            ${quiz.options.map((o, i) => `<button class="quiz-option" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join('')}
+          `}
+        </div>
+
+        <div class="card">
+          <span class="card-number">${card.id.replace('K','')}</span>
+          <h3>${escapeHTML(card.title)}</h3>
+          <p>${escapeHTML(card.text)}</p>
+          <button class="full ${read ? 'secondary' : ''}" onclick="readKnowledgeCard('${card.id}')">${read ? '已收藏這張知識卡' : '閱讀並收藏 +4XP'}</button>
+        </div>
+
+        <div class="card">
+          <h3>技能樹</h3>
+          <p class="hint">技能不是用猜的，而是從觀察、紀錄、測驗與正確照護累積。</p>
+          <div class="academy-grid">
+            ${skillDefs.map(skill => {
+              const value = skillProgress(skill.key);
+              const lv = Math.floor(value / 20) + 1;
+              return `<div class="skill-card">
+                <div class="skill-head"><strong>${skill.icon} ${skill.name}</strong><span class="level-pill">Lv.${Math.min(lv,5)}</span></div>
+                <p class="hint">${skill.desc}</p>
+                <div class="mini-bar"><div class="mini-fill" style="--value:${value}%"></div></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>能力型成就</h3>
+          <div class="badge-grid">${g.badges.map(b => `<span class="badge-pill ${b.unlocked ? '' : 'locked'}">${b.icon} ${b.name}</span>`).join('')}</div>
+        </div>`;
+    }
+
+    function answerQuiz(choiceIndex) {
+      const academy = academySettings();
+      if (academy.answeredQuizDates[todayISO()]) {
+        showToast('今天已經完成小測驗。');
+        return;
+      }
+      const quiz = dailyQuiz();
+      const correct = choiceIndex === quiz.answer;
+      academy.answeredQuizDates[todayISO()] = { correct, choiceIndex, explain: quiz.explain };
+      appData.careLogs.push({ id: uid('log'), plantId: null, type: correct ? '小測驗' : '學習', date: todayISO(), note: `今日小測驗：${correct ? '答對' : '答錯'}。${quiz.explain}`, createdAt: new Date().toISOString() });
+      saveData();
+      renderAll();
+      setScreen('academy');
+      showToast(correct ? '答對了，獲得 8 XP。' : '答錯沒關係，已記錄學習，獲得 2 XP。');
+    }
+
+    function readKnowledgeCard(cardId) {
+      const academy = academySettings();
+      if (academy.readCards[cardId]) {
+        showToast('這張知識卡已經收藏。');
+        return;
+      }
+      const card = knowledgeCards.find(c => c.id === cardId);
+      academy.readCards[cardId] = true;
+      appData.careLogs.push({ id: uid('log'), plantId: null, type: '知識卡', date: todayISO(), note: `收藏知識卡：${card ? card.title : cardId}`, createdAt: new Date().toISOString() });
+      saveData();
+      renderAll();
+      setScreen('academy');
+      showToast('已收藏知識卡，獲得 4 XP。');
+    }
+
+    function renderToday() {
+      const plants = appData.plants;
+      const needs = plants.filter(plantNeedsWater);
+      const watch = plants.filter(p => p.healthStatus && p.healthStatus !== '健康');
+      const stable = plants.filter(p => !plantNeedsWater(p) && (!p.healthStatus || p.healthStatus === '健康'));
+      const html = `
+        <h2>今日修煉</h2>
+        <p class="subtitle">今天是 ${formatDate(todayISO())}｜先觀察，再行動。</p>
+        ${renderGameSummary()}
+        ${renderDailyTraining()}
+        ${renderStarterQuest()}
+        <div class="soft-card">
+          <h3>今日總覽</h3>
+          <div class="grid-3">
+            <div class="stat"><strong>${needs.length}</strong><span>建議檢查澆水</span></div>
+            <div class="stat"><strong>${watch.length}</strong><span>需要觀察</span></div>
+            <div class="stat"><strong>${stable.length}</strong><span>狀況穩定</span></div>
+          </div>
+        </div>
+        ${plants.length === 0 ? `
+          <div class="card empty">
+            <h3>還沒有植物</h3>
+            <p>先新增你的第一盆植物，之後每天打開這裡，就能看到照護提醒。</p>
+            <button class="full" onclick="setScreen('add')">+ 新增植物</button>
+          </div>` : ''}
+        ${plants.map(p => todayPlantCard(p)).join('')}
+        <div class="card">
+          <h3>今日提醒</h3>
+          <p>植物通常不是忘記照顧死掉，而是太常澆水出問題。先摸土，再決定。</p>
+        </div>`;
+      document.getElementById('screen-today').innerHTML = html;
+    }
+
+    function renderGameSummary() {
+      const g = gameStats();
+      const badges = g.unlockedBadges.length ? g.unlockedBadges.slice(0, 3).map(b => `<span class="badge-pill">${b.icon} ${b.name}</span>`).join('') : '<span class="badge-pill locked">尚未獲得徽章</span>';
+      return `
+        <div class="card game-card">
+          <div class="level-row">
+            <div>
+              <h3>Lv.${g.level}｜${g.title.title}</h3>
+              <p class="hint">${g.title.ability}。完成觀察、測驗與知識卡，就能累積真正能力。</p>
+            </div>
+            <span class="level-pill">🌟 ${g.title.title}</span>
+          </div>
+          <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
+          <p class="hint">目前 ${g.xp} XP｜距離下一級還差 ${g.nextXp} XP｜連續照護 ${g.streak} 天</p>
+          <div class="badge-grid">${badges}</div>
+        </div>`;
+    }
+
+    function todayPlantCard(p) {
+      const info = getPlantInfo(p.name);
+      const next = nextWaterDate(p);
+      const needsWater = plantNeedsWater(p);
+      const abnormal = p.healthStatus && p.healthStatus !== '健康';
+      const advice = abnormal ? `目前狀態是「${escapeHTML(p.healthStatus)}」，建議先做症狀診斷。` : needsWater ? '建議今天檢查土壤。土壤 2 公分以下也乾了，再澆透。' : `今天先不用急著澆水。建議 ${formatDate(next)} 再檢查。`;
+      return `
+        <div class="card">
+          <div class="row">
+            <div>
+              <div class="plant-title">🪴 ${escapeHTML(p.name)}「${escapeHTML(p.nickname || '未命名')}」</div>
+              <div class="meta">${escapeHTML(p.location || '未設定位置')}｜${escapeHTML(p.light || info.light)}</div>
+            </div>
+            <span>${abnormal ? '👀' : needsWater ? '💧' : '🌿'}</span>
+          </div>
+          <p class="hint">上次澆水：${formatDate(p.lastWateredAt)}｜下次建議：${formatDate(next)}</p>
+          <p style="margin-top:10px;">${advice}</p>
+          <div class="actions">
+            <button class="small secondary" onclick="quickObserve('${p.id}')">完成觀察 +5XP</button>
+            <button class="small" onclick="quickWater('${p.id}')">記錄澆水 +10XP</button>
+            <button class="small secondary" onclick="openDetail('${p.id}')">查看</button>
+          </div>
+        </div>`;
+    }
+
+    function renderPlants() {
+      const html = `
+        <div class="row">
+          <div>
+            <h2>我的植物</h2>
+            <p class="subtitle">目前共有 ${appData.plants.length} 盆植物</p>
+          </div>
+          <button class="small" onclick="setScreen('add')">+ 新增</button>
+        </div>
+        ${appData.plants.length === 0 ? `<div class="card empty"><h3>你的植物清單是空的</h3><p>建立第一盆植物後，這裡會顯示澆水與健康狀態。</p><button class="full" onclick="setScreen('add')">新增植物</button></div>` : ''}
+        ${appData.plants.map(p => `
+          <div class="card">
+            <div class="plant-title">🪴 ${escapeHTML(p.name)}</div>
+            <p class="meta">暱稱：${escapeHTML(p.nickname || '未命名')}</p>
+            <p class="meta">位置：${escapeHTML(p.location || '未設定')}</p>
+            <div class="divider"></div>
+            <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
+            <p>下次建議：${formatDate(nextWaterDate(p))}</p>
+            <p>狀態：${escapeHTML(p.healthStatus || '健康')}</p>
+            <div class="actions"><button class="secondary" onclick="openDetail('${p.id}')">查看詳情</button></div>
+          </div>
+        `).join('')}`;
+      document.getElementById('screen-plants').innerHTML = html;
+    }
+
+    function renderAdd() {
+      document.getElementById('screen-add').innerHTML = `
+        <h2>新增植物</h2>
+        <p class="subtitle">先建立基本資料，以後可以再修改。</p>
+        <div class="card">
+          <label>植物種類</label>
+          <select id="add-name">${plantDatabase.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select>
+          <label>植物暱稱</label>
+          <input id="add-nickname" placeholder="例如：小綠" />
+          <label>放置位置</label>
+          <input id="add-location" placeholder="例如：客廳窗邊" />
+          <label>光照程度</label>
+          <select id="add-light"><option>強光</option><option selected>明亮散射光</option><option>半日照</option><option>陰暗</option></select>
+          <label>盆器大小</label>
+          <select id="add-pot"><option>小盆</option><option selected>中盆</option><option>大盆</option></select>
+          <label>土壤排水狀況</label>
+          <select id="add-soil"><option selected>良好</option><option>普通</option><option>容易積水</option></select>
+          <label>上次澆水日期</label>
+          <input id="add-watered" type="date" value="${todayISO()}" />
+          <label>目前狀態</label>
+          <select id="add-health"><option selected>健康</option><option>葉黃</option><option>下垂</option><option>蟲害</option><option>不確定</option></select>
+          <label>備註</label>
+          <textarea id="add-notes" placeholder="例如：最近長新葉"></textarea>
+          <button class="full" onclick="createPlant()">建立植物</button>
+        </div>`;
+    }
+
+    function createPlant() {
+      const name = document.getElementById('add-name').value;
+      const info = getPlantInfo(name);
+      const now = new Date().toISOString();
+      const plant = {
+        id: uid('plant'),
+        name,
+        nickname: document.getElementById('add-nickname').value.trim(),
+        location: document.getElementById('add-location').value.trim(),
+        light: document.getElementById('add-light').value,
+        potSize: document.getElementById('add-pot').value,
+        soilDrainage: document.getElementById('add-soil').value,
+        lastWateredAt: document.getElementById('add-watered').value || todayISO(),
+        waterIntervalDays: info.interval,
+        healthStatus: document.getElementById('add-health').value,
+        notes: document.getElementById('add-notes').value.trim(),
+        createdAt: now,
+        updatedAt: now
+      };
+      appData.plants.push(plant);
+      saveData();
+      renderAll();
+      showToast(`已新增 ${plant.name}「${plant.nickname || '未命名'}」，資料已自動儲存。`);
+      selectedPlantId = plant.id;
+      renderDetail(plant.id);
+      setScreen('detail');
+    }
+
+    function openDetail(id) {
+      selectedPlantId = id;
+      renderDetail(id);
+      setScreen('detail');
+    }
+
+    function renderDetail(id) {
+      const p = appData.plants.find(x => x.id === id);
+      if (!p) return;
+      const info = getPlantInfo(p.name);
+      const logs = appData.careLogs.filter(l => l.plantId === id).sort((a,b) => b.date.localeCompare(a.date));
+      document.getElementById('screen-detail').innerHTML = `
+        <button class="light small" onclick="setScreen('plants')">← 返回</button>
+        <div class="card">
+          <h2>${escapeHTML(p.name)}「${escapeHTML(p.nickname || '未命名')}」</h2>
+          <p class="subtitle">${escapeHTML(p.location || '未設定位置')}｜${escapeHTML(p.light || info.light)}</p>
+          <div class="divider"></div>
+          <h3>目前狀態</h3>
+          <p>🌿 ${escapeHTML(p.healthStatus || '健康')}</p>
+          <p>⭐ 難度：${escapeHTML(info.difficulty)}｜照護間隔：約 ${p.waterIntervalDays || info.interval} 天檢查一次</p>
+          <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
+          <p>建議下次檢查：${formatDate(nextWaterDate(p))}</p>
+          <div class="actions">
+            <button onclick="quickWater('${p.id}')">記錄澆水</button>
+            <button class="secondary" onclick="openLog('${p.id}')">新增紀錄</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>今日建議</h3>
+          <p>${plantNeedsWater(p) ? '今天可以檢查土壤。若土壤 2 公分以下也乾了，再澆透。' : '今天先不用急著澆水。如果土壤表面還濕，請再等。'}</p>
+        </div>
+        <div class="card">
+          <h3>基本照護</h3>
+          <p>💧 澆水：${escapeHTML(info.watering)}</p>
+          <p>☀️ 光照：${escapeHTML(info.light)}</p>
+          <p>🌱 難度：${escapeHTML(info.difficulty)}</p>
+          <p class="hint">${escapeHTML(info.note)}</p>
+        </div>
+        <div class="card">
+          <h3>照護紀錄</h3>
+          ${logs.length === 0 ? '<p class="hint">尚無照護紀錄。</p>' : logs.map(l => `<div class="list-log"><strong>${formatDate(l.date)}｜${escapeHTML(l.type)}</strong><p class="hint">${escapeHTML(l.note || '無備註')}</p></div>`).join('')}
+          <button class="full secondary" onclick="openLog('${p.id}')">+ 新增紀錄</button>
+        </div>
+        <button class="full danger" onclick="deletePlant('${p.id}')">刪除此植物</button>`;
+    }
+
+    function openLog(id) {
+      selectedPlantId = id;
+      renderLog(id);
+      setScreen('log');
+    }
+
+    function renderLog(id) {
+      const p = appData.plants.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('screen-log').innerHTML = `
+        <button class="light small" onclick="openDetail('${id}')">← 返回</button>
+        <h2>新增照護紀錄</h2>
+        <p class="subtitle">${escapeHTML(p.name)}「${escapeHTML(p.nickname || '未命名')}」</p>
+        <div class="card">
+          <label>照護類型</label>
+          <select id="log-type"><option>澆水</option><option>施肥</option><option>修剪</option><option>換盆</option><option>除蟲</option><option>觀察</option></select>
+          <label>日期</label>
+          <input id="log-date" type="date" value="${todayISO()}" />
+          <label>備註</label>
+          <textarea id="log-note" placeholder="例如：土壤變乾，澆到盆底出水"></textarea>
+          <button class="full" onclick="saveLog('${id}')">儲存紀錄</button>
+        </div>`;
+    }
+
+    function saveLog(id) {
+      const type = document.getElementById('log-type').value;
+      const date = document.getElementById('log-date').value || todayISO();
+      const note = document.getElementById('log-note').value.trim();
+      appData.careLogs.push({ id: uid('log'), plantId: id, type, date, note, createdAt: new Date().toISOString() });
+      if (type === '澆水') {
+        const p = appData.plants.find(x => x.id === id);
+        if (p) { p.lastWateredAt = date; p.updatedAt = new Date().toISOString(); }
+      }
+      saveData();
+      renderAll();
+      showToast('照護紀錄已儲存。');
+      openDetail(id);
+    }
+
+    function quickObserve(id) {
+      if (alreadyObservedToday(id)) {
+        showToast('今天已經完成這盆植物的觀察。');
+        return;
+      }
+      const p = appData.plants.find(x => x.id === id);
+      appData.careLogs.push({ id: uid('log'), plantId: id, type: '觀察', date: todayISO(), note: '今日任務：完成植物觀察。', createdAt: new Date().toISOString() });
+      if (p) p.updatedAt = new Date().toISOString();
+      saveData();
+      renderAll();
+      if (selectedPlantId === id) renderDetail(id);
+      showToast('完成觀察，獲得 5 XP。');
+    }
+
+    function quickWater(id) {
+      appData.careLogs.push({ id: uid('log'), plantId: id, type: '澆水', date: todayISO(), note: '快速記錄澆水。', createdAt: new Date().toISOString() });
+      const p = appData.plants.find(x => x.id === id);
+      if (p) { p.lastWateredAt = todayISO(); p.updatedAt = new Date().toISOString(); }
+      saveData();
+      renderAll();
+      if (selectedPlantId === id) renderDetail(id);
+      showToast('已記錄澆水，獲得 10 XP。提醒日期已更新。');
+    }
+
+    function deletePlant(id) {
+      if (!confirm('確定要刪除此植物嗎？相關照護紀錄也會刪除。')) return;
+      appData.plants = appData.plants.filter(p => p.id !== id);
+      appData.careLogs = appData.careLogs.filter(l => l.plantId !== id);
+      saveData();
+      selectedPlantId = null;
+      renderAll();
+      showToast('植物已刪除。');
+      setScreen('plants');
+    }
+
+    function renderDiagnosis() {
+      document.getElementById('screen-diagnosis').innerHTML = `
+        <h2>症狀診斷</h2>
+        <p class="subtitle">植物看起來怪怪的嗎？先選最明顯的症狀。</p>
+        <div class="card">
+          ${Object.keys(symptomDatabase).map(s => `<div class="symptom-item" onclick="openDiagnosisResult('${s}')"><span>${escapeHTML(s)}</span><span>›</span></div>`).join('')}
+        </div>
+        <div class="soft-card">
+          <h3>小提醒</h3>
+          <p>不確定原因時，不要急著施肥。很多問題其實是水分或根系問題。</p>
+        </div>`;
+    }
+
+    function openDiagnosisResult(symptom) {
+      selectedSymptom = symptom;
+      renderDiagnosisResult(symptom);
+      setScreen('diagnosis-result');
+    }
+
+    function renderDiagnosisResult(symptom) {
+      const s = symptomDatabase[symptom];
+      if (!s) return;
+      document.getElementById('screen-diagnosis-result').innerHTML = `
+        <button class="light small" onclick="setScreen('diagnosis')">← 返回診斷</button>
+        <div class="card">
+          <h2>診斷結果：${escapeHTML(symptom)}</h2>
+          <h3>可能原因</h3>
+          <p>${s.causes.map((c, i) => `${i + 1}. ${escapeHTML(c)}`).join('<br>')}</p>
+          <div class="divider"></div>
+          <h3>嚴重程度</h3>
+          <p>${escapeHTML(s.severity)}</p>
+          <div class="divider"></div>
+          <h3>今天先做這些</h3>
+          <p>${s.today.map((c, i) => `${i + 1}. ${escapeHTML(c)}`).join('<br>')}</p>
+          <div class="divider"></div>
+          <h3>接下來 7 天觀察</h3>
+          <p>${escapeHTML(s.plan)}</p>
+          <div class="divider"></div>
+          <h3>需要警覺的情況</h3>
+          <p class="warning">${escapeHTML(s.warning)}</p>
+        </div>`;
+    }
+
+    function renderKnowledge() {
+      document.getElementById('screen-knowledge').innerHTML = `
+        <h2>植物知識庫</h2>
+        <p class="subtitle">已收錄更多常見室內、陽台、香草與開花植物。</p>
+        <div class="card">
+          ${plantDatabase.map(p => `<div class="knowledge-item" onclick="openKnowledge('${p.name}')"><div><strong>${p.name}</strong><p class="hint">難度：${p.difficulty}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('')}
+        </div>`;
+    }
+
+    function openKnowledge(name) {
+      selectedKnowledge = name;
+      renderKnowledgeDetail(name);
+      setScreen('knowledge-detail');
+    }
+
+    function renderKnowledgeDetail(name) {
+      const p = getPlantInfo(name);
+      document.getElementById('screen-knowledge-detail').innerHTML = `
+        <button class="light small" onclick="setScreen('knowledge')">← 返回知識庫</button>
+        <div class="card">
+          <h2>${escapeHTML(p.name)}</h2>
+          <p class="subtitle">新手難度：${escapeHTML(p.difficulty)}</p>
+          <div class="divider"></div>
+          <h3>照護重點</h3>
+          <p>${escapeHTML(p.note)}</p>
+          <div class="divider"></div>
+          <h3>基本需求</h3>
+          <p>☀️ 光照：${escapeHTML(p.light)}</p>
+          <p>💧 澆水：${escapeHTML(p.watering)}</p>
+          <p>🪴 建議：大約 ${p.interval} 天檢查一次土壤，不要照天數盲目澆水。</p>
+          <button class="full" onclick="setScreen('add')">加入我的植物</button>
+        </div>`;
+    }
+
+    function renderSettings() {
+      const g = gameStats();
+      document.getElementById('screen-settings').innerHTML = `
+        <h2>設定</h2>
+        <div class="card game-card">
+          <h3>達人養成進度</h3>
+          <p>綠手指等級：Lv.${g.level}｜${g.title.title}</p>
+          <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
+          <p class="hint">總經驗值：${g.xp} XP｜連續照護：${g.streak} 天</p>
+          <div class="badge-grid">${g.badges.map(b => `<span class="badge-pill ${b.unlocked ? '' : 'locked'}">${b.icon} ${b.name}</span>`).join('')}</div>
+          <button class="full secondary" onclick="setScreen('academy')">查看植物達人養成</button>
+        </div>
+        <div class="card">
+          <h3>資料備份</h3>
+          <p>目前資料儲存在這台裝置的瀏覽器中。若更換手機或清除瀏覽器資料，資料可能會消失。</p>
+          <div class="divider"></div>
+          <p>植物：${appData.plants.length} 盆</p>
+          <p>照護紀錄：${appData.careLogs.length} 筆</p>
+          <div class="actions">
+            <button onclick="exportData()">匯出我的植物資料</button>
+            <button class="secondary" onclick="document.getElementById('import-file').click()">匯入備份檔</button>
+          </div>
+        </div>
+        <div class="soft-card">
+          <h3>儲存方式說明</h3>
+          <p>第一版不需要登入。資料會自動保存在這台裝置。建議定期匯出備份。</p>
+        </div>
+        <div class="card">
+          <h3>加入手機主畫面</h3>
+          <p>如果之後把這個檔案部署成網站，就可以像 App 一樣加入手機主畫面。</p>
+          <ol class="install-steps">
+            <li>用 Safari 或 Chrome 打開網站。</li>
+            <li>點分享按鈕。</li>
+            <li>選擇「加入主畫面」。</li>
+            <li>桌面會出現「植物綠手指」。</li>
+          </ol>
+          <button class="full secondary" onclick="resetOnboarding()">重新觀看新手教學</button>
+        </div>
+        <div class="card">
+          <h3 class="danger-text">危險操作</h3>
+          <p>清除後無法復原。請先匯出備份。</p>
+          <button class="full danger" onclick="clearAllData()">清除全部資料</button>
+        </div>`;
+    }
+
+    function exportData() {
+      const payload = { ...appData, exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `plant-green-thumb-backup-${todayISO()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('備份檔已匯出。');
+    }
+
+    document.getElementById('import-file').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!confirm('匯入備份會覆蓋目前資料，確定要繼續嗎？')) { event.target.value = ''; return; }
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        if (!Array.isArray(imported.plants) || !Array.isArray(imported.careLogs)) throw new Error('格式錯誤');
+        appData = { ...blankData(), ...imported };
+        saveData();
+        renderAll();
+        setScreen('today');
+        showToast('備份已匯入。');
+      } catch (error) {
+        showToast('匯入失敗：檔案格式不正確。');
+      } finally {
+        event.target.value = '';
+      }
+    });
+
+    function clearAllData() {
+      if (!confirm('確定要清除全部資料嗎？這個動作無法復原。')) return;
+      appData = blankData();
+      saveData();
+      selectedPlantId = null;
+      renderAll();
+      setScreen('today');
+      showToast('全部資料已清除。');
+    }
+
+    document.querySelectorAll('.nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.nav;
+        setScreen(target);
+      });
+    });
+
+    appData.version = '1.4.0';
+    saveData();
+    renderAll();
+  </script>
+</body>
+</html>
