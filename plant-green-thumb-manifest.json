@@ -2,15 +2,23 @@
   "name": "植物綠手指",
   "short_name": "綠手指",
   "description": "植物照護、遊戲化學習與植物達人養成 Web App。",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#3f7d58",
-  "orientation": "portrait",
   "icons": [
-    { "src": "./plant-green-thumb-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./plant-green-thumb-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    {
+      "src": "plant-green-thumb-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "plant-green-thumb-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

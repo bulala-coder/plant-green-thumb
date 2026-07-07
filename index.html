@@ -8,9 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="植物綠手指" />
   <meta name="description" content="植物照護、遊戲化學習與植物達人養成 Web App。" />
-  <link rel="manifest" href="./plant-green-thumb-manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./plant-green-thumb-icon-192.png" />
-  <link rel="apple-touch-icon" href="./plant-green-thumb-icon-192.png" />
+  <link rel="manifest" href="plant-green-thumb-manifest.json" />
+  <link rel="apple-touch-icon" href="plant-green-thumb-icon-192.png" />
   <title>植物綠手指</title>
   <style>
     :root {
@@ -167,6 +166,128 @@
     }
 
     textarea { min-height: 84px; resize: vertical; }
+
+    .finder-tools {
+      display: grid;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .category-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 6px;
+      scrollbar-width: none;
+    }
+
+    .category-row::-webkit-scrollbar { display: none; }
+
+    .plant-picker {
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .plant-option {
+      width: 100%;
+      text-align: left;
+      border-radius: 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 14px;
+    }
+
+    .plant-option:last-child { border-bottom: 0; }
+
+    .plant-option.active {
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .plant-option small {
+      display: block;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    .selected-plant {
+      background: #f7fbf4;
+      border: 1px solid #d6e8d9;
+      border-radius: 16px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+
+
+    .ease-guide {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .ease-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px;
+      background: #fffdf8;
+    }
+
+    .ease-card strong {
+      display: block;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+
+    .ease-card .hint {
+      margin-bottom: 8px;
+    }
+
+    .recommend-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .recommend-chip {
+      background: #eef6e8;
+      color: var(--green-dark);
+      border: 1px solid #d7e8cf;
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ease-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #f2f7ee;
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 4px 0 8px;
+    }
 
     .pill-group {
       display: flex;
@@ -581,6 +702,63 @@
       { name: '豬籠草', difficulty: '中高', interval: 3, light: '明亮散射光到半日照', watering: '保持介質微濕', note: '喜歡濕度與乾淨水源，避免濃肥。' },
     ];
 
+    const plantCategories = ['全部', '第一盆首選', '新手友善', '室內觀葉', '香草蔬菜', '多肉仙人掌', '蕨類竹芋', '開花植物', '大型植物', '特殊植物'];
+    const easeCategories = ['全部', '第一盆首選', '很好養', '好養', '普通', '稍難', '高難度'];
+
+    const categoryRules = {
+      '香草蔬菜': ['薄荷', '羅勒', '迷迭香', '薰衣草', '九層塔', '香菜', '蔥'],
+      '多肉仙人掌': ['蘆薈', '多肉植物', '觀音蓮', '仙人掌', '仙人球', '玉露', '熊童子', '石蓮花', '酒瓶蘭'],
+      '蕨類竹芋': ['竹芋', '孔雀竹芋', '青蘋果竹芋', '鹿角蕨', '波士頓腎蕨', '鳥巢蕨', '鐵線蕨'],
+      '開花植物': ['長壽花', '非洲菫', '蝴蝶蘭', '文心蘭', '玫瑰', '茉莉花', '梔子花', '日日春', '矮牽牛', '天竺葵', '繡球花', '聖誕紅'],
+      '大型植物': ['琴葉榕', '龜背芋', '龜背竹', '發財樹', '馬拉巴栗', '天堂鳥', '散尾葵', '姑婆芋'],
+      '特殊植物': ['空氣鳳梨', '捕蠅草', '豬籠草']
+    };
+
+    const firstPlantPicks = ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'];
+    const beginnerPlants = ['黃金葛', '虎尾蘭', '吊蘭', '蘆薈', '合果芋', '粗肋草', '心葉蔓綠絨', '圓葉椒草', '豆瓣綠', '仙人掌', '仙人球', '開運竹', '富貴竹', '金錢樹', '酒瓶蘭'];
+
+    function getPlantCategory(plant) {
+      if (firstPlantPicks.includes(plant.name)) return '第一盆首選';
+      if (beginnerPlants.includes(plant.name)) return '新手友善';
+      for (const [category, names] of Object.entries(categoryRules)) {
+        if (names.includes(plant.name)) return category;
+      }
+      return '室內觀葉';
+    }
+
+    function getEaseLevel(plant) {
+      if (firstPlantPicks.includes(plant.name)) return '第一盆首選';
+      if (plant.difficulty === '低') return '很好養';
+      if (plant.difficulty === '低到中') return '好養';
+      if (plant.difficulty === '中') return '普通';
+      if (plant.difficulty === '中高') return '稍難';
+      if (plant.difficulty === '高') return '高難度';
+      return '普通';
+    }
+
+    function getEaseAdvice(plant) {
+      const ease = getEaseLevel(plant);
+      const advice = {
+        '第一盆首選': '最適合完全新手，容錯高，先從這類開始最穩。',
+        '很好養': '照護簡單，只要避免過度澆水，多數人都能養好。',
+        '好養': '適合有一點觀察習慣的新手，注意光照與排水即可。',
+        '普通': '需要比較穩定的光照、水分與通風，適合第二階段挑戰。',
+        '稍難': '對環境變化、水分或濕度較敏感，建議有經驗後再買。',
+        '高難度': '需要較精準的環境管理，不建議作為第一盆植物。'
+      };
+      return advice[ease] || advice['普通'];
+    }
+
+    function filterPlantDatabase(category = '全部', keyword = '') {
+      const q = keyword.trim().toLowerCase();
+      return plantDatabase.filter(p => {
+        const matchCategory = category === '全部' || getPlantCategory(p) === category || getEaseLevel(p) === category;
+        const haystack = `${p.name} ${p.difficulty} ${getEaseLevel(p)} ${p.light} ${p.watering} ${p.note}`.toLowerCase();
+        const matchKeyword = !q || haystack.includes(q);
+        return matchCategory && matchKeyword;
+      });
+    }
+
     const symptomDatabase = {
       '葉子變黃': {
         severity: '中等',
@@ -693,6 +871,11 @@
     let selectedPlantId = null;
     let selectedKnowledge = null;
     let selectedSymptom = null;
+    let selectedAddPlantName = '黃金葛';
+    let selectedAddCategory = '第一盆首選';
+    let addPlantSearch = '';
+    let selectedKnowledgeCategory = '全部';
+    let knowledgeSearch = '';
 
     function blankData() {
       return {
@@ -1159,12 +1342,21 @@
     }
 
     function renderAdd() {
+      if (!getPlantInfo(selectedAddPlantName)) selectedAddPlantName = plantDatabase[0].name;
       document.getElementById('screen-add').innerHTML = `
         <h2>新增植物</h2>
-        <p class="subtitle">先建立基本資料，以後可以再修改。</p>
+        <p class="subtitle">植物很多時，先用「第一盆首選」或容易度分類，再搜尋會更快。</p>
         <div class="card">
           <label>植物種類</label>
-          <select id="add-name">${plantDatabase.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select>
+          <div class="finder-tools">
+            <input id="add-plant-search" placeholder="搜尋植物，例如：黃金葛、蘭、薄荷、仙人掌" value="${escapeHTML(addPlantSearch)}" oninput="setAddPlantSearch(this.value)" />
+            <div class="category-row">
+              ${plantCategories.concat(easeCategories.filter(c => !plantCategories.includes(c))).map(c => `<button type="button" class="small ${selectedAddCategory === c ? '' : 'light'}" onclick="setAddPlantCategory('${c}')">${c}</button>`).join('')}
+            </div>
+            <div id="add-selected-plant" class="selected-plant"></div>
+            <p id="add-result-count" class="result-count"></p>
+            <div id="add-plant-picker" class="plant-picker"></div>
+          </div>
           <label>植物暱稱</label>
           <input id="add-nickname" placeholder="例如：小綠" />
           <label>放置位置</label>
@@ -1183,10 +1375,44 @@
           <textarea id="add-notes" placeholder="例如：最近長新葉"></textarea>
           <button class="full" onclick="createPlant()">建立植物</button>
         </div>`;
+      renderAddPlantPicker();
+    }
+
+    function setAddPlantCategory(category) {
+      selectedAddCategory = category;
+      renderAdd();
+    }
+
+    function setAddPlantSearch(value) {
+      addPlantSearch = value;
+      renderAddPlantPicker();
+    }
+
+    function chooseAddPlant(name) {
+      selectedAddPlantName = name;
+      renderAddPlantPicker();
+    }
+
+    function renderAddPlantPicker() {
+      const picker = document.getElementById('add-plant-picker');
+      const selectedBox = document.getElementById('add-selected-plant');
+      const count = document.getElementById('add-result-count');
+      if (!picker || !selectedBox || !count) return;
+      const selected = getPlantInfo(selectedAddPlantName);
+      const list = filterPlantDatabase(selectedAddCategory, addPlantSearch);
+      selectedBox.innerHTML = `
+        <strong>目前選擇：${escapeHTML(selected.name)}</strong>
+        <p class="hint">${escapeHTML(getPlantCategory(selected))}｜${escapeHTML(getEaseLevel(selected))}｜約 ${selected.interval} 天檢查澆水</p>`;
+      count.textContent = `找到 ${list.length} 種植物`;
+      picker.innerHTML = list.length ? list.map(p => `
+        <button type="button" class="plant-option ${p.name === selectedAddPlantName ? 'active' : ''}" onclick='chooseAddPlant(${JSON.stringify(p.name)})'>
+          <span><strong>${escapeHTML(p.name)}</strong><small>${escapeHTML(getPlantCategory(p))}｜${escapeHTML(getEaseLevel(p))}｜${escapeHTML(p.light)}</small></span>
+          <span>${p.name === selectedAddPlantName ? '✓' : '›'}</span>
+        </button>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換個關鍵字，例如「蘭」「蕨」「多肉」「薄荷」。</p></div>`;
     }
 
     function createPlant() {
-      const name = document.getElementById('add-name').value;
+      const name = selectedAddPlantName || plantDatabase[0].name;
       const info = getPlantInfo(name);
       const now = new Date().toISOString();
       const plant = {
@@ -1376,13 +1602,66 @@
         </div>`;
     }
 
+    function renderBuyingGuide() {
+      const groups = [
+        { level: '第一盆首選', title: '🌱 第一盆首選', desc: '最適合完全新手。先買這一區，成功率最高，也比較容易建立信心。' },
+        { level: '很好養', title: '🪴 很好養', desc: '容錯高，重點是不要太常澆水。適合作為前 3 盆植物。' },
+        { level: '好養', title: '🌿 好養', desc: '需要一點觀察習慣，但仍適合新手。適合有固定照護節奏後再買。' },
+        { level: '普通', title: '☀️ 普通', desc: '需要比較穩定的光線、水分與通風。建議先養活 2–3 盆再挑戰。' },
+        { level: '稍難', title: '🧪 稍難', desc: '對濕度、光照或環境變動較敏感。適合已有照護經驗的人。' },
+        { level: '高難度', title: '🏔 高難度', desc: '不建議作為第一盆。需要更細緻的環境控制與觀察能力。' }
+      ];
+      return `<div class="card">
+        <h3>不知道先買什麼？</h3>
+        <p class="hint">建議順序：第一盆首選 → 很好養 → 好養 → 普通 → 稍難。不要一開始就買高難度植物。</p>
+        <div class="ease-guide">
+          ${groups.map(group => {
+            const picks = plantDatabase.filter(p => getEaseLevel(p) === group.level).slice(0, 8);
+            return `<div class="ease-card">
+              <strong>${group.title}</strong>
+              <p class="hint">${group.desc}</p>
+              <div class="recommend-list">${picks.map(p => `<span class="recommend-chip">${escapeHTML(p.name)}</span>`).join('')}</div>
+              <button type="button" class="small secondary" style="margin-top:10px;" onclick="setKnowledgeCategory('${group.level}')">看這一類植物</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
     function renderKnowledge() {
       document.getElementById('screen-knowledge').innerHTML = `
         <h2>植物知識庫</h2>
-        <p class="subtitle">已收錄更多常見室內、陽台、香草與開花植物。</p>
+        <p class="subtitle">可以先依照容易度挑植物，再用搜尋或分類縮小範圍。</p>
+        ${renderBuyingGuide()}
         <div class="card">
-          ${plantDatabase.map(p => `<div class="knowledge-item" onclick="openKnowledge('${p.name}')"><div><strong>${p.name}</strong><p class="hint">難度：${p.difficulty}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('')}
+          <h3>搜尋與篩選</h3>
+          <input id="knowledge-search" placeholder="搜尋植物，例如：蘭、蕨、多肉、香草" value="${escapeHTML(knowledgeSearch)}" oninput="setKnowledgeSearch(this.value)" />
+          <div class="category-row" style="margin-top:10px;">
+            ${plantCategories.concat(easeCategories.filter(c => !plantCategories.includes(c))).map(c => `<button type="button" class="small ${selectedKnowledgeCategory === c ? '' : 'light'}" onclick="setKnowledgeCategory('${c}')">${c}</button>`).join('')}
+          </div>
+          <p id="knowledge-result-count" class="result-count"></p>
+          <div id="knowledge-list"></div>
         </div>`;
+      renderKnowledgeList();
+    }
+
+    function setKnowledgeCategory(category) {
+      selectedKnowledgeCategory = category;
+      renderKnowledge();
+    }
+
+    function setKnowledgeSearch(value) {
+      knowledgeSearch = value;
+      renderKnowledgeList();
+    }
+
+    function renderKnowledgeList() {
+      const listEl = document.getElementById('knowledge-list');
+      const countEl = document.getElementById('knowledge-result-count');
+      if (!listEl || !countEl) return;
+      const list = filterPlantDatabase(selectedKnowledgeCategory, knowledgeSearch);
+      countEl.textContent = `找到 ${list.length} 種植物`;
+      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><p class="hint">${escapeHTML(getPlantCategory(p))}｜${escapeHTML(getEaseLevel(p))}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換分類，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
     }
 
     function openKnowledge(name) {
@@ -1397,7 +1676,7 @@
         <button class="light small" onclick="setScreen('knowledge')">← 返回知識庫</button>
         <div class="card">
           <h2>${escapeHTML(p.name)}</h2>
-          <p class="subtitle">新手難度：${escapeHTML(p.difficulty)}</p>
+          <p class="subtitle">容易度：${escapeHTML(getEaseLevel(p))}｜原始難度：${escapeHTML(p.difficulty)}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
           <div class="divider"></div>
           <h3>照護重點</h3>
           <p>${escapeHTML(p.note)}</p>
