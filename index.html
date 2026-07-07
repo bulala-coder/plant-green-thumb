@@ -8,8 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="植物綠手指" />
   <meta name="description" content="植物照護、遊戲化學習與植物達人養成 Web App。" />
-  <link rel="manifest" href="plant-green-thumb-manifest.json" />
-  <link rel="apple-touch-icon" href="plant-green-thumb-icon-192.png" />
+  <link rel="manifest" href="./plant-green-thumb-manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./plant-green-thumb-icon-192.png" />
+  <link rel="apple-touch-icon" href="./plant-green-thumb-icon-192.png" />
   <title>植物綠手指</title>
   <style>
     :root {
@@ -631,79 +632,119 @@
   <script>
     const STORAGE_KEY = 'plantGreenThumb.v1';
 
+    function getEaseLevelByName(name, legacyLevel = '中') {
+      const groups = {
+        '第一盆首選': ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'],
+        '很好養': ['蘆薈', '仙人掌', '蔥', '萬年青', '白網紋草', '椒草類', '仙人球', '開運竹', '富貴竹'],
+        '好養': ['龜背芋', '發財樹', '白鶴芋', '橡皮樹', '羅勒', '薄荷', '蔓綠絨', '黑金剛橡皮樹', '冷水花', '長壽花', '日日春', '袖珍椰子', '鏡面草'],
+        '普通': ['多肉植物', '鹿角蕨', '波士頓腎蕨', '非洲菫', '蝴蝶蘭', '九層塔', '香菜', '龜背竹', '姑婆芋', '鳥巢蕨', '常春藤', '觀音蓮', '玉露', '熊童子', '石蓮花', '文心蘭', '茉莉花', '矮牽牛', '天竺葵', '聖誕紅', '天堂鳥', '散尾葵', '馬拉巴栗', '空氣鳳梨'],
+        '稍難': ['琴葉榕', '鐵線蕨', '竹芋類', '竹芋', '孔雀竹芋', '青蘋果竹芋', '迷迭香', '薰衣草', '海芋', '粉紅公主蔓綠絨', '彩葉芋', '玫瑰', '梔子花', '繡球花'],
+        '高難度': ['捕蠅草', '豬籠草', '腎蕨高濕品種', '特殊斑葉品種']
+      };
+      for (const [level, names] of Object.entries(groups)) {
+        if (names.includes(name)) return level;
+      }
+      const legacyMap = { '低': '很好養', '低到中': '好養', '中': '普通', '中高': '稍難', '高': '高難度' };
+      return legacyMap[legacyLevel] || '普通';
+    }
+
     const plantDatabase = [
-      { name: '黃金葛', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、好照顧，怕長期積水。' },
-      { name: '虎尾蘭', difficulty: '低', interval: 12, light: '明亮散射光到半日照', watering: '乾透後再澆', note: '非常耐旱，最怕太常澆水。' },
-      { name: '龜背芋', difficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '喜歡明亮環境，避免烈日直曬。' },
-      { name: '發財樹', difficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '根系怕悶濕，盆土不要長期潮濕。' },
-      { name: '白鶴芋', difficulty: '中', interval: 4, light: '明亮散射光', watering: '土表乾就檢查', note: '缺水會垂葉，但也怕積水。' },
-      { name: '吊蘭', difficulty: '低', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '適應力強，適合新手。' },
-      { name: '蘆薈', difficulty: '低', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '多肉質植物，怕過濕。' },
-      { name: '多肉植物', difficulty: '中', interval: 12, light: '明亮光到半日照', watering: '乾透再澆', note: '光線不足容易徒長。' },
-      { name: '琴葉榕', difficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '對環境變動敏感，避免頻繁移動。' },
-      { name: '薄荷', difficulty: '中', interval: 3, light: '半日照到強光', watering: '保持微濕但不積水', note: '生長快，需水量較高。' },
-      { name: '羅勒', difficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '喜歡充足光照與穩定水分，適合陽台。' },
-      { name: '迷迭香', difficulty: '中高', interval: 7, light: '強光到半日照', watering: '偏乾再澆，避免悶濕', note: '喜歡通風與排水佳的介質，怕潮濕悶根。' },
-      { name: '薰衣草', difficulty: '中高', interval: 7, light: '強光', watering: '乾透再澆', note: '需要充足日照與良好通風，台灣潮濕環境要控水。' },
-      { name: '九層塔', difficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '生長快、需光多，缺水容易萎垂。' },
-      { name: '香菜', difficulty: '中', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '怕高溫，炎熱環境容易抽苔或衰弱。' },
-      { name: '蔥', difficulty: '低', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '適合陽台栽培，保持通風與排水即可。' },
-      { name: '龜背竹', difficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '大型觀葉植物，喜歡高濕與明亮環境。' },
-      { name: '合果芋', difficulty: '低', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '適應力強，但斑葉品種需要較明亮光線。' },
-      { name: '粗肋草', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '耐陰但怕冷，適合室內明亮處。' },
-      { name: '蔓綠絨', difficulty: '低到中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '多數品種好照顧，避免長期積水。' },
-      { name: '心葉蔓綠絨', difficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、垂吊好看，適合室內新手。' },
-      { name: '粉紅公主蔓綠絨', difficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '斑葉品種需明亮光線，但避免烈日。' },
-      { name: '海芋', difficulty: '中高', interval: 5, light: '明亮散射光', watering: '保持微濕但不積水', note: '喜歡濕度，但塊莖與根系怕爛。' },
-      { name: '姑婆芋', difficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '葉片大、蒸散快，需注意通風與水分。' },
-      { name: '彩葉芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '葉色鮮豔但怕乾、怕冷，休眠期需少水。' },
-      { name: '竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，水分忽乾忽濕容易焦邊。' },
-      { name: '孔雀竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '怕乾燥與強光，葉緣焦枯常見。' },
-      { name: '青蘋果竹芋', difficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '需要穩定濕度與柔和光線。' },
-      { name: '鹿角蕨', difficulty: '中高', interval: 5, light: '明亮散射光', watering: '介質乾一半再給水', note: '喜歡通風、高濕，避免中心積水。' },
-      { name: '波士頓腎蕨', difficulty: '中高', interval: 3, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，乾燥會掉葉與焦邊。' },
-      { name: '鳥巢蕨', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '澆水避免長期積在葉心。' },
-      { name: '鐵線蕨', difficulty: '高', interval: 3, light: '明亮散射光', watering: '保持濕潤但不積水', note: '對乾燥敏感，不適合常忘記澆水的人。' },
-      { name: '常春藤', difficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '土表乾後澆透', note: '喜歡涼爽通風，悶熱環境易有蟲害。' },
-      { name: '橡皮樹', difficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '耐陰但明亮環境長得更好，怕積水。' },
-      { name: '黑金剛橡皮樹', difficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '葉厚耐旱，澆水過多容易落葉。' },
-      { name: '圓葉椒草', difficulty: '低', interval: 7, light: '明亮散射光', watering: '偏乾再澆', note: '葉片儲水，適合室內，怕過度澆水。' },
-      { name: '豆瓣綠', difficulty: '低', interval: 7, light: '明亮散射光', watering: '土壤偏乾再澆', note: '小型室內植物，水太多容易爛莖。' },
-      { name: '冷水花', difficulty: '低到中', interval: 4, light: '明亮散射光', watering: '土表乾後澆透', note: '生長快，需修剪維持株型。' },
-      { name: '觀音蓮', difficulty: '中', interval: 10, light: '明亮光到半日照', watering: '乾透再澆', note: '多肉型態，怕悶濕與光線不足。' },
-      { name: '仙人掌', difficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '非常耐旱，室內光線不足時要更少澆水。' },
-      { name: '仙人球', difficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '需充足光照，冬季或陰雨天要控水。' },
-      { name: '玉露', difficulty: '中', interval: 12, light: '明亮散射光', watering: '乾透再澆', note: '避免烈日直曬，水多易徒長或爛根。' },
-      { name: '熊童子', difficulty: '中', interval: 10, light: '明亮光', watering: '乾透再澆', note: '葉片肥厚怕悶濕，夏季高溫需小心。' },
-      { name: '石蓮花', difficulty: '中', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '光不足易徒長，葉心避免積水。' },
-      { name: '長壽花', difficulty: '低到中', interval: 7, light: '明亮光到半日照', watering: '土表乾後澆透', note: '開花植物，花期需明亮光線。' },
-      { name: '非洲菫', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '避免葉面積水，適合室內窗邊。' },
-      { name: '蝴蝶蘭', difficulty: '中', interval: 7, light: '明亮散射光', watering: '水苔偏乾再澆', note: '根需要通氣，水苔長期濕會爛根。' },
-      { name: '文心蘭', difficulty: '中', interval: 5, light: '明亮散射光', watering: '介質半乾再澆', note: '喜歡通風與明亮散射光。' },
-      { name: '玫瑰', difficulty: '中高', interval: 3, light: '強光', watering: '土表乾後澆透', note: '需要充足日照與通風，病蟲害需常檢查。' },
-      { name: '茉莉花', difficulty: '中', interval: 3, light: '強光到半日照', watering: '土表乾後澆透', note: '喜歡光照，缺光不易開花。' },
-      { name: '梔子花', difficulty: '中高', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '喜歡酸性介質與穩定水分。' },
-      { name: '日日春', difficulty: '低到中', interval: 3, light: '強光', watering: '土表乾後澆透', note: '耐熱開花，需通風避免病害。' },
-      { name: '矮牽牛', difficulty: '中', interval: 2, light: '強光', watering: '保持微濕但不積水', note: '花多需水多，炎熱天可能每天檢查。' },
-      { name: '天竺葵', difficulty: '中', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '怕悶濕，通風很重要。' },
-      { name: '繡球花', difficulty: '中高', interval: 2, light: '半日照', watering: '保持濕潤但不積水', note: '缺水會快速垂葉，夏季需遮蔭。' },
-      { name: '聖誕紅', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '怕冷與積水，環境變動易落葉。' },
-      { name: '開運竹', difficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '水耕要保持水質乾淨，避免烈日。' },
-      { name: '富貴竹', difficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '耐陰但需要乾淨水質與適度光線。' },
-      { name: '天堂鳥', difficulty: '中', interval: 7, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '大型植物，喜歡明亮環境與穩定水分。' },
-      { name: '散尾葵', difficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '喜歡濕度與通風，葉尖焦常和乾燥相關。' },
-      { name: '袖珍椰子', difficulty: '低到中', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '適合室內，避免強光直曬與長期積水。' },
-      { name: '酒瓶蘭', difficulty: '低', interval: 14, light: '明亮光到半日照', watering: '乾透再澆', note: '基部可儲水，非常怕太常澆。' },
-      { name: '馬拉巴栗', difficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '常被稱為發財樹，根系怕悶濕。' },
-      { name: '金錢樹', difficulty: '低', interval: 14, light: '明亮散射光', watering: '乾透再澆', note: '耐陰耐旱，過度澆水最容易出問題。' },
-      { name: '鏡面草', difficulty: '低到中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '葉片圓亮，避免強光與長期乾旱。' },
-      { name: '空氣鳳梨', difficulty: '中', interval: 4, light: '明亮散射光', watering: '浸水後徹底晾乾', note: '不需要土，但給水後一定要通風晾乾。' },
-      { name: '捕蠅草', difficulty: '中高', interval: 3, light: '強光', watering: '使用純水保持介質濕潤', note: '食蟲植物，需純水與強光，不可用一般肥料。' },
-      { name: '豬籠草', difficulty: '中高', interval: 3, light: '明亮散射光到半日照', watering: '保持介質微濕', note: '喜歡濕度與乾淨水源，避免濃肥。' },
-    ];
+      { name: '黃金葛', legacyDifficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、好照顧，怕長期積水。' },
+      { name: '虎尾蘭', legacyDifficulty: '低', interval: 12, light: '明亮散射光到半日照', watering: '乾透後再澆', note: '非常耐旱，最怕太常澆水。' },
+      { name: '龜背芋', legacyDifficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '喜歡明亮環境，避免烈日直曬。' },
+      { name: '發財樹', legacyDifficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '根系怕悶濕，盆土不要長期潮濕。' },
+      { name: '白鶴芋', legacyDifficulty: '中', interval: 4, light: '明亮散射光', watering: '土表乾就檢查', note: '缺水會垂葉，但也怕積水。' },
+      { name: '吊蘭', legacyDifficulty: '低', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '適應力強，適合新手。' },
+      { name: '蘆薈', legacyDifficulty: '低', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '多肉質植物，怕過濕。' },
+      { name: '多肉植物', legacyDifficulty: '中', interval: 12, light: '明亮光到半日照', watering: '乾透再澆', note: '光線不足容易徒長。' },
+      { name: '琴葉榕', legacyDifficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '對環境變動敏感，避免頻繁移動。' },
+      { name: '薄荷', legacyDifficulty: '中', interval: 3, light: '半日照到強光', watering: '保持微濕但不積水', note: '生長快，需水量較高。' },
+      { name: '羅勒', legacyDifficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '喜歡充足光照與穩定水分，適合陽台。' },
+      { name: '迷迭香', legacyDifficulty: '中高', interval: 7, light: '強光到半日照', watering: '偏乾再澆，避免悶濕', note: '喜歡通風與排水佳的介質，怕潮濕悶根。' },
+      { name: '薰衣草', legacyDifficulty: '中高', interval: 7, light: '強光', watering: '乾透再澆', note: '需要充足日照與良好通風，台灣潮濕環境要控水。' },
+      { name: '九層塔', legacyDifficulty: '中', interval: 3, light: '半日照到強光', watering: '土表乾後澆透', note: '生長快、需光多，缺水容易萎垂。' },
+      { name: '香菜', legacyDifficulty: '中', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '怕高溫，炎熱環境容易抽苔或衰弱。' },
+      { name: '蔥', legacyDifficulty: '低', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '適合陽台栽培，保持通風與排水即可。' },
+      { name: '龜背竹', legacyDifficulty: '中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '大型觀葉植物，喜歡高濕與明亮環境。' },
+      { name: '合果芋', legacyDifficulty: '低', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '適應力強，但斑葉品種需要較明亮光線。' },
+      { name: '粗肋草', legacyDifficulty: '低', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '耐陰但怕冷，適合室內明亮處。' },
+      { name: '蔓綠絨', legacyDifficulty: '低到中', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '多數品種好照顧，避免長期積水。' },
+      { name: '心葉蔓綠絨', legacyDifficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、垂吊好看，適合室內新手。' },
+      { name: '粉紅公主蔓綠絨', legacyDifficulty: '中高', interval: 6, light: '明亮散射光', watering: '表土乾後澆透', note: '斑葉品種需明亮光線，但避免烈日。' },
+      { name: '海芋', legacyDifficulty: '中高', interval: 5, light: '明亮散射光', watering: '保持微濕但不積水', note: '喜歡濕度，但塊莖與根系怕爛。' },
+      { name: '姑婆芋', legacyDifficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '葉片大、蒸散快，需注意通風與水分。' },
+      { name: '彩葉芋', legacyDifficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '葉色鮮豔但怕乾、怕冷，休眠期需少水。' },
+      { name: '竹芋', legacyDifficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，水分忽乾忽濕容易焦邊。' },
+      { name: '孔雀竹芋', legacyDifficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕但不積水', note: '怕乾燥與強光，葉緣焦枯常見。' },
+      { name: '青蘋果竹芋', legacyDifficulty: '中高', interval: 4, light: '明亮散射光', watering: '保持微濕', note: '需要穩定濕度與柔和光線。' },
+      { name: '鹿角蕨', legacyDifficulty: '中高', interval: 5, light: '明亮散射光', watering: '介質乾一半再給水', note: '喜歡通風、高濕，避免中心積水。' },
+      { name: '波士頓腎蕨', legacyDifficulty: '中高', interval: 3, light: '明亮散射光', watering: '保持微濕', note: '喜歡高濕，乾燥會掉葉與焦邊。' },
+      { name: '鳥巢蕨', legacyDifficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '澆水避免長期積在葉心。' },
+      { name: '鐵線蕨', legacyDifficulty: '高', interval: 3, light: '明亮散射光', watering: '保持濕潤但不積水', note: '對乾燥敏感，不適合常忘記澆水的人。' },
+      { name: '常春藤', legacyDifficulty: '中', interval: 5, light: '明亮散射光到半日照', watering: '土表乾後澆透', note: '喜歡涼爽通風，悶熱環境易有蟲害。' },
+      { name: '橡皮樹', legacyDifficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '耐陰但明亮環境長得更好，怕積水。' },
+      { name: '黑金剛橡皮樹', legacyDifficulty: '低到中', interval: 7, light: '明亮散射光', watering: '表土乾後澆透', note: '葉厚耐旱，澆水過多容易落葉。' },
+      { name: '圓葉椒草', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '偏乾再澆', note: '葉片儲水，適合室內，怕過度澆水。' },
+      { name: '豆瓣綠', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '土壤偏乾再澆', note: '小型室內植物，水太多容易爛莖。' },
+      { name: '冷水花', legacyDifficulty: '低到中', interval: 4, light: '明亮散射光', watering: '土表乾後澆透', note: '生長快，需修剪維持株型。' },
+      { name: '觀音蓮', legacyDifficulty: '中', interval: 10, light: '明亮光到半日照', watering: '乾透再澆', note: '多肉型態，怕悶濕與光線不足。' },
+      { name: '仙人掌', legacyDifficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '非常耐旱，室內光線不足時要更少澆水。' },
+      { name: '仙人球', legacyDifficulty: '低', interval: 14, light: '強光', watering: '完全乾透再澆', note: '需充足光照，冬季或陰雨天要控水。' },
+      { name: '玉露', legacyDifficulty: '中', interval: 12, light: '明亮散射光', watering: '乾透再澆', note: '避免烈日直曬，水多易徒長或爛根。' },
+      { name: '熊童子', legacyDifficulty: '中', interval: 10, light: '明亮光', watering: '乾透再澆', note: '葉片肥厚怕悶濕，夏季高溫需小心。' },
+      { name: '石蓮花', legacyDifficulty: '中', interval: 12, light: '半日照到強光', watering: '乾透再澆', note: '光不足易徒長，葉心避免積水。' },
+      { name: '長壽花', legacyDifficulty: '低到中', interval: 7, light: '明亮光到半日照', watering: '土表乾後澆透', note: '開花植物，花期需明亮光線。' },
+      { name: '非洲菫', legacyDifficulty: '中', interval: 5, light: '明亮散射光', watering: '土表微乾再澆', note: '避免葉面積水，適合室內窗邊。' },
+      { name: '蝴蝶蘭', legacyDifficulty: '中', interval: 7, light: '明亮散射光', watering: '水苔偏乾再澆', note: '根需要通氣，水苔長期濕會爛根。' },
+      { name: '文心蘭', legacyDifficulty: '中', interval: 5, light: '明亮散射光', watering: '介質半乾再澆', note: '喜歡通風與明亮散射光。' },
+      { name: '玫瑰', legacyDifficulty: '中高', interval: 3, light: '強光', watering: '土表乾後澆透', note: '需要充足日照與通風，病蟲害需常檢查。' },
+      { name: '茉莉花', legacyDifficulty: '中', interval: 3, light: '強光到半日照', watering: '土表乾後澆透', note: '喜歡光照，缺光不易開花。' },
+      { name: '梔子花', legacyDifficulty: '中高', interval: 3, light: '半日照', watering: '保持微濕但不積水', note: '喜歡酸性介質與穩定水分。' },
+      { name: '日日春', legacyDifficulty: '低到中', interval: 3, light: '強光', watering: '土表乾後澆透', note: '耐熱開花，需通風避免病害。' },
+      { name: '矮牽牛', legacyDifficulty: '中', interval: 2, light: '強光', watering: '保持微濕但不積水', note: '花多需水多，炎熱天可能每天檢查。' },
+      { name: '天竺葵', legacyDifficulty: '中', interval: 4, light: '半日照到強光', watering: '土表乾後澆透', note: '怕悶濕，通風很重要。' },
+      { name: '繡球花', legacyDifficulty: '中高', interval: 2, light: '半日照', watering: '保持濕潤但不積水', note: '缺水會快速垂葉，夏季需遮蔭。' },
+      { name: '聖誕紅', legacyDifficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '怕冷與積水，環境變動易落葉。' },
+      { name: '開運竹', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '水耕要保持水質乾淨，避免烈日。' },
+      { name: '富貴竹', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '水耕每週換水或土耕偏乾再澆', note: '耐陰但需要乾淨水質與適度光線。' },
+      { name: '天堂鳥', legacyDifficulty: '中', interval: 7, light: '明亮散射光到半日照', watering: '表土乾後澆透', note: '大型植物，喜歡明亮環境與穩定水分。' },
+      { name: '散尾葵', legacyDifficulty: '中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '喜歡濕度與通風，葉尖焦常和乾燥相關。' },
+      { name: '袖珍椰子', legacyDifficulty: '低到中', interval: 6, light: '明亮散射光', watering: '土表乾後澆透', note: '適合室內，避免強光直曬與長期積水。' },
+      { name: '酒瓶蘭', legacyDifficulty: '低', interval: 14, light: '明亮光到半日照', watering: '乾透再澆', note: '基部可儲水，非常怕太常澆。' },
+      { name: '馬拉巴栗', legacyDifficulty: '中', interval: 9, light: '明亮散射光', watering: '寧乾勿濕', note: '常被稱為發財樹，根系怕悶濕。' },
+      { name: '金錢樹', legacyDifficulty: '低', interval: 14, light: '明亮散射光', watering: '乾透再澆', note: '耐陰耐旱，過度澆水最容易出問題。' },
+      { name: '鏡面草', legacyDifficulty: '低到中', interval: 5, light: '明亮散射光', watering: '土表乾後澆透', note: '葉片圓亮，避免強光與長期乾旱。' },
+      { name: '空氣鳳梨', legacyDifficulty: '中', interval: 4, light: '明亮散射光', watering: '浸水後徹底晾乾', note: '不需要土，但給水後一定要通風晾乾。' },
+      { name: '捕蠅草', legacyDifficulty: '中高', interval: 3, light: '強光', watering: '使用純水保持介質濕潤', note: '食蟲植物，需純水與強光，不可用一般肥料。' },
+      { name: '豬籠草', legacyDifficulty: '中高', interval: 3, light: '明亮散射光到半日照', watering: '保持介質微濕', note: '喜歡濕度與乾淨水源，避免濃肥。' },
+      { name: '白網紋草', legacyDifficulty: '低', interval: 4, light: '明亮散射光', watering: '土表微乾再澆，避免完全乾透', note: '葉片會明顯表現缺水，適合練習觀察，但要避免烈日與積水。' },
+      { name: '椒草類', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '偏乾再澆', note: '多數椒草葉片可儲水，室內好照顧，重點是不要太常澆水。' },
+      { name: '腎蕨高濕品種', legacyDifficulty: '高', interval: 2, light: '明亮散射光', watering: '保持穩定濕潤與高濕', note: '對乾燥非常敏感，需要穩定濕度與通風，不建議新手直接挑戰。' },
+      { name: '特殊斑葉品種', legacyDifficulty: '高', interval: 5, light: '明亮散射光', watering: '依品種調整，避免過乾或積水', note: '斑葉品種常需要更穩定的光線與照護，購買前要先確認品種需求。' },
+    ].map(plant => ({ ...plant, easeLevel: getEaseLevelByName(plant.name, plant.legacyDifficulty) }));
 
     const plantCategories = ['全部', '第一盆首選', '新手友善', '室內觀葉', '香草蔬菜', '多肉仙人掌', '蕨類竹芋', '開花植物', '大型植物', '特殊植物'];
     const easeCategories = ['全部', '第一盆首選', '很好養', '好養', '普通', '稍難', '高難度'];
+    const easeFilterButtons = easeCategories.filter(c => c !== '全部');
+    const easeRank = Object.fromEntries(easeCategories.map((level, index) => [level, index]));
+
+    const easeLevelGroups = {
+      '第一盆首選': ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'],
+      '很好養': ['蘆薈', '仙人掌', '蔥', '萬年青', '白網紋草', '椒草類', '仙人球', '開運竹', '富貴竹'],
+      '好養': ['龜背芋', '發財樹', '白鶴芋', '橡皮樹', '羅勒', '薄荷', '蔓綠絨', '黑金剛橡皮樹', '冷水花', '長壽花', '日日春', '袖珍椰子', '鏡面草'],
+      '普通': ['多肉植物', '鹿角蕨', '波士頓腎蕨', '非洲菫', '蝴蝶蘭', '九層塔', '香菜', '龜背竹', '姑婆芋', '鳥巢蕨', '常春藤', '觀音蓮', '玉露', '熊童子', '石蓮花', '文心蘭', '茉莉花', '矮牽牛', '天竺葵', '聖誕紅', '天堂鳥', '散尾葵', '馬拉巴栗', '空氣鳳梨'],
+      '稍難': ['琴葉榕', '鐵線蕨', '竹芋類', '竹芋', '孔雀竹芋', '青蘋果竹芋', '迷迭香', '薰衣草', '海芋', '粉紅公主蔓綠絨', '彩葉芋', '玫瑰', '梔子花', '繡球花'],
+      '高難度': ['捕蠅草', '豬籠草', '腎蕨高濕品種', '特殊斑葉品種']
+    };
+
+    const buyingGuideGroups = [
+      { level: '第一盆首選', title: '🌱 第一盆首選', desc: '最適合完全新手。先買這一區，成功率最高，也比較容易建立信心。', picks: ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'] },
+      { level: '很好養', title: '🪴 很好養', desc: '容錯高，重點是不要太常澆水。適合作為前 3 盆植物。', picks: ['蘆薈', '仙人掌', '蔥', '萬年青', '白網紋草', '椒草類'] },
+      { level: '好養', title: '🌿 好養', desc: '需要一點觀察習慣，但仍適合新手。適合有固定照護節奏後再買。', picks: ['龜背芋', '發財樹', '白鶴芋', '橡皮樹', '羅勒', '薄荷'] },
+      { level: '普通', title: '☀️ 普通', desc: '需要比較穩定的光線、水分與通風。建議先養活 2–3 盆再挑戰。', picks: ['多肉植物', '鹿角蕨', '波士頓腎蕨', '非洲菫', '蝴蝶蘭'] },
+      { level: '稍難', title: '🧪 稍難', desc: '對濕度、光照或環境變動較敏感。適合已有照護經驗的人。', picks: ['琴葉榕', '鐵線蕨', '竹芋類', '迷迭香', '薰衣草', '海芋'] },
+      { level: '高難度', title: '🏔 高難度', desc: '不建議作為第一盆。需要更細緻的環境控制與觀察能力。', picks: ['捕蠅草', '豬籠草', '腎蕨高濕品種', '特殊斑葉品種'] }
+    ];
 
     const categoryRules = {
       '香草蔬菜': ['薄荷', '羅勒', '迷迭香', '薰衣草', '九層塔', '香菜', '蔥'],
@@ -727,13 +768,7 @@
     }
 
     function getEaseLevel(plant) {
-      if (firstPlantPicks.includes(plant.name)) return '第一盆首選';
-      if (plant.difficulty === '低') return '很好養';
-      if (plant.difficulty === '低到中') return '好養';
-      if (plant.difficulty === '中') return '普通';
-      if (plant.difficulty === '中高') return '稍難';
-      if (plant.difficulty === '高') return '高難度';
-      return '普通';
+      return plant.easeLevel || getEaseLevelByName(plant.name, plant.legacyDifficulty);
     }
 
     function getEaseAdvice(plant) {
@@ -749,14 +784,48 @@
       return advice[ease] || advice['普通'];
     }
 
+    function getSuitableFor(plant) {
+      const ease = getEaseLevel(plant);
+      const suitable = {
+        '第一盆首選': '完全新手、常忘記澆水、想先建立信心的人。',
+        '很好養': '新手、忙碌族、想低壓力增加植物數量的人。',
+        '好養': '已有一點照護節奏，願意每週觀察光照與土壤的人。',
+        '普通': '已養過幾盆植物，能穩定觀察水分、光照與通風的人。',
+        '稍難': '有照護經驗，能調整濕度、光線與環境穩定度的人。',
+        '高難度': '進階玩家，願意研究介質、水質、濕度與品種需求的人。'
+      };
+      return suitable[ease] || suitable['普通'];
+    }
+
+    function getBuyingAdvice(plant) {
+      const ease = getEaseLevel(plant);
+      const advice = {
+        '第一盆首選': '可以放心作為第一盆。購買時挑葉片飽滿、盆土不發臭、莖葉沒有軟爛的植株。',
+        '很好養': '適合早期入手。先確認家中光線足夠，再選健康、無蟲、盆土不積水的植株。',
+        '好養': '建議先養活 1–2 盆第一盆首選後再買。購買後先放在穩定明亮處，不要急著換盆施肥。',
+        '普通': '不要只看外型下手。先確認家中環境是否能提供穩定光線、通風與照護頻率。',
+        '稍難': '建議有經驗後再買，並先查清楚濕度、光照與介質需求；剛帶回家先不要頻繁移動。',
+        '高難度': '不建議當第一盆。購買前請確認水質、濕度、光照或品種條件都能配合。'
+      };
+      return advice[ease] || advice['普通'];
+    }
+
+    function sortPlantsByEase(list) {
+      return [...list].sort((a, b) => {
+        const easeDiff = (easeRank[getEaseLevel(a)] || 99) - (easeRank[getEaseLevel(b)] || 99);
+        if (easeDiff !== 0) return easeDiff;
+        return a.name.localeCompare(b.name, 'zh-Hant');
+      });
+    }
+
     function filterPlantDatabase(category = '全部', keyword = '') {
       const q = keyword.trim().toLowerCase();
-      return plantDatabase.filter(p => {
-        const matchCategory = category === '全部' || getPlantCategory(p) === category || getEaseLevel(p) === category;
-        const haystack = `${p.name} ${p.difficulty} ${getEaseLevel(p)} ${p.light} ${p.watering} ${p.note}`.toLowerCase();
+      return sortPlantsByEase(plantDatabase.filter(p => {
+        const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category;
+        const haystack = `${p.name} ${p.easeLevel} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note}`.toLowerCase();
         const matchKeyword = !q || haystack.includes(q);
         return matchCategory && matchKeyword;
-      });
+      }));
     }
 
     const symptomDatabase = {
@@ -874,7 +943,7 @@
     let selectedAddPlantName = '黃金葛';
     let selectedAddCategory = '第一盆首選';
     let addPlantSearch = '';
-    let selectedKnowledgeCategory = '全部';
+    let selectedKnowledgeCategory = '第一盆首選';
     let knowledgeSearch = '';
 
     function blankData() {
@@ -1345,13 +1414,14 @@
       if (!getPlantInfo(selectedAddPlantName)) selectedAddPlantName = plantDatabase[0].name;
       document.getElementById('screen-add').innerHTML = `
         <h2>新增植物</h2>
-        <p class="subtitle">植物很多時，先用「第一盆首選」或容易度分類，再搜尋會更快。</p>
+        <p class="subtitle">不再用長下拉選單。先選容易度，再搜尋植物名稱，點卡片後才會設定目前選擇。</p>
         <div class="card">
-          <label>植物種類</label>
+          <label>搜尋植物</label>
           <div class="finder-tools">
             <input id="add-plant-search" placeholder="搜尋植物，例如：黃金葛、蘭、薄荷、仙人掌" value="${escapeHTML(addPlantSearch)}" oninput="setAddPlantSearch(this.value)" />
+            <label style="margin:0;">養的容易度</label>
             <div class="category-row">
-              ${plantCategories.concat(easeCategories.filter(c => !plantCategories.includes(c))).map(c => `<button type="button" class="small ${selectedAddCategory === c ? '' : 'light'}" onclick="setAddPlantCategory('${c}')">${c}</button>`).join('')}
+              ${easeFilterButtons.map(c => `<button type="button" class="small ${selectedAddCategory === c ? '' : 'light'}" onclick="setAddPlantCategory('${c}')">${c}</button>`).join('')}
             </div>
             <div id="add-selected-plant" class="selected-plant"></div>
             <p id="add-result-count" class="result-count"></p>
@@ -1402,11 +1472,11 @@
       const list = filterPlantDatabase(selectedAddCategory, addPlantSearch);
       selectedBox.innerHTML = `
         <strong>目前選擇：${escapeHTML(selected.name)}</strong>
-        <p class="hint">${escapeHTML(getPlantCategory(selected))}｜${escapeHTML(getEaseLevel(selected))}｜約 ${selected.interval} 天檢查澆水</p>`;
+        <p class="hint">容易度：${escapeHTML(getEaseLevel(selected))}｜約 ${selected.interval} 天檢查澆水</p>`;
       count.textContent = `找到 ${list.length} 種植物`;
       picker.innerHTML = list.length ? list.map(p => `
         <button type="button" class="plant-option ${p.name === selectedAddPlantName ? 'active' : ''}" onclick='chooseAddPlant(${JSON.stringify(p.name)})'>
-          <span><strong>${escapeHTML(p.name)}</strong><small>${escapeHTML(getPlantCategory(p))}｜${escapeHTML(getEaseLevel(p))}｜${escapeHTML(p.light)}</small></span>
+          <span><strong>${escapeHTML(p.name)}</strong><small>容易度：${escapeHTML(getEaseLevel(p))}｜${escapeHTML(p.light)}</small></span>
           <span>${p.name === selectedAddPlantName ? '✓' : '›'}</span>
         </button>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換個關鍵字，例如「蘭」「蕨」「多肉」「薄荷」。</p></div>`;
     }
@@ -1425,6 +1495,7 @@
         soilDrainage: document.getElementById('add-soil').value,
         lastWateredAt: document.getElementById('add-watered').value || todayISO(),
         waterIntervalDays: info.interval,
+        easeLevel: getEaseLevel(info),
         healthStatus: document.getElementById('add-health').value,
         notes: document.getElementById('add-notes').value.trim(),
         createdAt: now,
@@ -1458,7 +1529,9 @@
           <div class="divider"></div>
           <h3>目前狀態</h3>
           <p>🌿 ${escapeHTML(p.healthStatus || '健康')}</p>
-          <p>⭐ 難度：${escapeHTML(info.difficulty)}｜照護間隔：約 ${p.waterIntervalDays || info.interval} 天檢查一次</p>
+          <p>⭐ 容易度：${escapeHTML(getEaseLevel(info))}｜照護間隔：約 ${p.waterIntervalDays || info.interval} 天檢查一次</p>
+          <p>🙋 適合誰：${escapeHTML(getSuitableFor(info))}</p>
+          <p>🛒 新手購買建議：${escapeHTML(getBuyingAdvice(info))}</p>
           <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
           <p>建議下次檢查：${formatDate(nextWaterDate(p))}</p>
           <div class="actions">
@@ -1474,7 +1547,7 @@
           <h3>基本照護</h3>
           <p>💧 澆水：${escapeHTML(info.watering)}</p>
           <p>☀️ 光照：${escapeHTML(info.light)}</p>
-          <p>🌱 難度：${escapeHTML(info.difficulty)}</p>
+          <p>🌱 容易度：${escapeHTML(getEaseLevel(info))}</p>
           <p class="hint">${escapeHTML(info.note)}</p>
         </div>
         <div class="card">
@@ -1603,27 +1676,16 @@
     }
 
     function renderBuyingGuide() {
-      const groups = [
-        { level: '第一盆首選', title: '🌱 第一盆首選', desc: '最適合完全新手。先買這一區，成功率最高，也比較容易建立信心。' },
-        { level: '很好養', title: '🪴 很好養', desc: '容錯高，重點是不要太常澆水。適合作為前 3 盆植物。' },
-        { level: '好養', title: '🌿 好養', desc: '需要一點觀察習慣，但仍適合新手。適合有固定照護節奏後再買。' },
-        { level: '普通', title: '☀️ 普通', desc: '需要比較穩定的光線、水分與通風。建議先養活 2–3 盆再挑戰。' },
-        { level: '稍難', title: '🧪 稍難', desc: '對濕度、光照或環境變動較敏感。適合已有照護經驗的人。' },
-        { level: '高難度', title: '🏔 高難度', desc: '不建議作為第一盆。需要更細緻的環境控制與觀察能力。' }
-      ];
       return `<div class="card">
         <h3>不知道先買什麼？</h3>
         <p class="hint">建議順序：第一盆首選 → 很好養 → 好養 → 普通 → 稍難。不要一開始就買高難度植物。</p>
         <div class="ease-guide">
-          ${groups.map(group => {
-            const picks = plantDatabase.filter(p => getEaseLevel(p) === group.level).slice(0, 8);
-            return `<div class="ease-card">
+          ${buyingGuideGroups.map(group => `<div class="ease-card">
               <strong>${group.title}</strong>
               <p class="hint">${group.desc}</p>
-              <div class="recommend-list">${picks.map(p => `<span class="recommend-chip">${escapeHTML(p.name)}</span>`).join('')}</div>
+              <div class="recommend-list">${group.picks.map(name => `<span class="recommend-chip">${escapeHTML(name)}</span>`).join('')}</div>
               <button type="button" class="small secondary" style="margin-top:10px;" onclick="setKnowledgeCategory('${group.level}')">看這一類植物</button>
-            </div>`;
-          }).join('')}
+            </div>`).join('')}
         </div>
       </div>`;
     }
@@ -1636,8 +1698,9 @@
         <div class="card">
           <h3>搜尋與篩選</h3>
           <input id="knowledge-search" placeholder="搜尋植物，例如：蘭、蕨、多肉、香草" value="${escapeHTML(knowledgeSearch)}" oninput="setKnowledgeSearch(this.value)" />
+          <label style="margin-bottom:0;">養的容易度</label>
           <div class="category-row" style="margin-top:10px;">
-            ${plantCategories.concat(easeCategories.filter(c => !plantCategories.includes(c))).map(c => `<button type="button" class="small ${selectedKnowledgeCategory === c ? '' : 'light'}" onclick="setKnowledgeCategory('${c}')">${c}</button>`).join('')}
+            ${easeFilterButtons.map(c => `<button type="button" class="small ${selectedKnowledgeCategory === c ? '' : 'light'}" onclick="setKnowledgeCategory('${c}')">${c}</button>`).join('')}
           </div>
           <p id="knowledge-result-count" class="result-count"></p>
           <div id="knowledge-list"></div>
@@ -1661,7 +1724,7 @@
       if (!listEl || !countEl) return;
       const list = filterPlantDatabase(selectedKnowledgeCategory, knowledgeSearch);
       countEl.textContent = `找到 ${list.length} 種植物`;
-      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><p class="hint">${escapeHTML(getPlantCategory(p))}｜${escapeHTML(getEaseLevel(p))}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換分類，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
+      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><span class="ease-pill">${escapeHTML(getEaseLevel(p))}</span><p class="hint">${escapeHTML(getPlantCategory(p))}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換容易度，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
     }
 
     function openKnowledge(name) {
@@ -1676,7 +1739,13 @@
         <button class="light small" onclick="setScreen('knowledge')">← 返回知識庫</button>
         <div class="card">
           <h2>${escapeHTML(p.name)}</h2>
-          <p class="subtitle">容易度：${escapeHTML(getEaseLevel(p))}｜原始難度：${escapeHTML(p.difficulty)}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
+          <p class="subtitle">容易度：${escapeHTML(getEaseLevel(p))}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
+          <div class="divider"></div>
+          <h3>適合誰</h3>
+          <p>${escapeHTML(getSuitableFor(p))}</p>
+          <div class="divider"></div>
+          <h3>新手購買建議</h3>
+          <p>${escapeHTML(getBuyingAdvice(p))}</p>
           <div class="divider"></div>
           <h3>照護重點</h3>
           <p>${escapeHTML(p.note)}</p>
@@ -1685,8 +1754,16 @@
           <p>☀️ 光照：${escapeHTML(p.light)}</p>
           <p>💧 澆水：${escapeHTML(p.watering)}</p>
           <p>🪴 建議：大約 ${p.interval} 天檢查一次土壤，不要照天數盲目澆水。</p>
-          <button class="full" onclick="setScreen('add')">加入我的植物</button>
+          <button class="full" onclick='startAddPlant(${JSON.stringify(p.name)})'>加入我的植物</button>
         </div>`;
+    }
+
+    function startAddPlant(name) {
+      const info = getPlantInfo(name);
+      selectedAddPlantName = info.name;
+      selectedAddCategory = getEaseLevel(info);
+      addPlantSearch = '';
+      setScreen('add');
     }
 
     function renderSettings() {
