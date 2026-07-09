@@ -1035,8 +1035,61 @@
       return xpMap[type] || 5;
     }
 
+    function samePlantTypeDateKey(log) {
+      return `${log.plantId || 'global'}::${log.type}::${log.date}`;
+    }
+
+    function alreadyClaimedCareXP(plantId, type, date) {
+      return appData.careLogs.some(log => log.plantId === plantId && log.type === type && log.date === date);
+    }
+
+    function calculateCareLogXP() {
+      const awardedKeys = new Set();
+      return appData.careLogs.reduce((sum, log) => {
+        if (log.xpAwarded === false) return sum;
+        if (log.plantId) {
+          const key = samePlantTypeDateKey(log);
+          if (awardedKeys.has(key)) return sum;
+          awardedKeys.add(key);
+        }
+        return sum + careXp(log.type);
+      }, 0);
+    }
+
+    function logHappenedWithin24Hours(log, now = new Date()) {
+      const happenedAt = log.createdAt ? new Date(log.createdAt) : new Date(`${log.date}T00:00:00`);
+      if (Number.isNaN(happenedAt.getTime())) return false;
+      const hours = (now.getTime() - happenedAt.getTime()) / 3600000;
+      return hours >= 0 && hours < 24;
+    }
+
+    function hasWateredWithin24Hours(plantId) {
+      return appData.careLogs.some(log => log.plantId === plantId && log.type === '澆水' && logHappenedWithin24Hours(log));
+    }
+
+    function confirmRepeatWateringIfNeeded(plantId) {
+      if (!hasWateredWithin24Hours(plantId)) return true;
+      return confirm('這盆植物 24 小時內已經記錄過澆水。多數植物不需要短時間內重複澆水。請確認你不是重複操作。');
+    }
+
+    function recordCareLog({ plantId, type, date, note, forceNoXP = false }) {
+      const sameDateXPAlreadyClaimed = Boolean(plantId) && alreadyClaimedCareXP(plantId, type, date);
+      const xpAwarded = !forceNoXP && !sameDateXPAlreadyClaimed;
+      const log = { id: uid('log'), plantId, type, date, note, xpAwarded, createdAt: new Date().toISOString() };
+      appData.careLogs.push(log);
+      return { log, xpAwarded, xp: xpAwarded ? careXp(type) : 0, sameDateXPAlreadyClaimed };
+    }
+
+    function toastCareLogResult(result) {
+      if (result.xpAwarded) {
+        showToast(`已記錄，+${result.xp} XP`);
+      } else {
+        showToast('已記錄，但今天這盆植物的同類照護 XP 已領取過。');
+      }
+    }
+
     function gameStats() {
-      const xp = appData.careLogs.reduce((sum, log) => sum + careXp(log.type), 0) + appData.plants.length * 15;
+      const xp = calculateCareLogXP() + appData.plants.length * 15;
       const level = Math.floor(xp / 100) + 1;
       const currentXp = xp % 100;
       const nextXp = 100 - currentXp;
@@ -1397,10 +1450,11 @@
             <span>${abnormal ? '👀' : needsWater ? '💧' : '🌿'}</span>
           </div>
           <p class="hint">上次澆水：${formatDate(p.lastWateredAt)}｜下次建議：${formatDate(next)}</p>
+          <p class="hint">請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
           <p style="margin-top:10px;">${advice}</p>
           <div class="actions">
             <button class="small secondary" onclick="quickObserve('${p.id}')">完成觀察 +5XP</button>
-            <button class="small" onclick="quickWater('${p.id}')">記錄澆水 +10XP</button>
+            <button class="small" onclick="quickWater('${p.id}')">記錄澆水</button>
             <button class="small secondary" onclick="openDetail('${p.id}')">查看</button>
           </div>
         </div>`;
@@ -1563,6 +1617,7 @@
         <div class="card">
           <h3>今日建議</h3>
           <p>${plantNeedsWater(p) ? '今天可以檢查土壤。若土壤 2 公分以下也乾了，再澆透。' : '今天先不用急著澆水。如果土壤表面還濕，請再等。'}</p>
+          <p class="hint">請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
         </div>
         <div class="card">
           <h3>基本照護</h3>
@@ -1600,6 +1655,7 @@
           <input id="log-date" type="date" value="${todayISO()}" />
           <label>備註</label>
           <textarea id="log-note" placeholder="例如：土壤變乾，澆到盆底出水"></textarea>
+          <p class="hint">記錄澆水前，請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
           <button class="full" onclick="saveLog('${id}')">儲存紀錄</button>
         </div>`;
     }
@@ -1608,39 +1664,39 @@
       const type = document.getElementById('log-type').value;
       const date = document.getElementById('log-date').value || todayISO();
       const note = document.getElementById('log-note').value.trim();
-      appData.careLogs.push({ id: uid('log'), plantId: id, type, date, note, createdAt: new Date().toISOString() });
+      const repeatWatering = type === '澆水' && hasWateredWithin24Hours(id);
+      if (repeatWatering && !confirmRepeatWateringIfNeeded(id)) return;
+      const result = recordCareLog({ plantId: id, type, date, note, forceNoXP: repeatWatering });
       if (type === '澆水') {
         const p = appData.plants.find(x => x.id === id);
         if (p) { p.lastWateredAt = date; p.updatedAt = new Date().toISOString(); }
       }
       saveData();
       renderAll();
-      showToast('照護紀錄已儲存。');
       openDetail(id);
+      toastCareLogResult(result);
     }
 
     function quickObserve(id) {
-      if (alreadyObservedToday(id)) {
-        showToast('今天已經完成這盆植物的觀察。');
-        return;
-      }
       const p = appData.plants.find(x => x.id === id);
-      appData.careLogs.push({ id: uid('log'), plantId: id, type: '觀察', date: todayISO(), note: '今日任務：完成植物觀察。', createdAt: new Date().toISOString() });
+      const result = recordCareLog({ plantId: id, type: '觀察', date: todayISO(), note: '今日任務：完成植物觀察。' });
       if (p) p.updatedAt = new Date().toISOString();
       saveData();
       renderAll();
       if (selectedPlantId === id) renderDetail(id);
-      showToast('完成觀察，獲得 5 XP。');
+      toastCareLogResult(result);
     }
 
     function quickWater(id) {
-      appData.careLogs.push({ id: uid('log'), plantId: id, type: '澆水', date: todayISO(), note: '快速記錄澆水。', createdAt: new Date().toISOString() });
+      const repeatWatering = hasWateredWithin24Hours(id);
+      if (repeatWatering && !confirmRepeatWateringIfNeeded(id)) return;
+      const result = recordCareLog({ plantId: id, type: '澆水', date: todayISO(), note: '快速記錄澆水。', forceNoXP: repeatWatering });
       const p = appData.plants.find(x => x.id === id);
       if (p) { p.lastWateredAt = todayISO(); p.updatedAt = new Date().toISOString(); }
       saveData();
       renderAll();
       if (selectedPlantId === id) renderDetail(id);
-      showToast('已記錄澆水，獲得 10 XP。提醒日期已更新。');
+      toastCareLogResult(result);
     }
 
     function deletePlant(id) {
