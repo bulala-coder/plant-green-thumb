@@ -652,13 +652,62 @@
       const airPlantNames = ['空氣鳳梨', '小精靈空氣鳳梨', '松蘿空氣鳳梨', '女王頭空氣鳳梨', '電捲燙空氣鳳梨', '老人鬚', '空氣鳳梨霸王'];
       const isAir = airPlantNames.includes(plant.name);
       const ease = getEaseLevelByName(plant.name, plant.legacyDifficulty);
-      const defaults = {
-        personality: `${ease}、${plant.light.includes('散射') ? '喜歡柔和光' : '喜歡穩定環境'}、需要觀察節奏`,
-        originStory: `${plant.name}在自然環境中會依照當地光線、水分與通風調整生長。把它帶進室內時，最重要的是模仿「穩定光線、適度水分、空氣流動」這三件事。`,
-        funFact: `${plant.name}會用葉片狀態透露環境訊息；葉色、硬度、新芽速度與土壤乾濕，都是它和你溝通的方式。`,
-        beginnerTip: `先不要急著施肥或頻繁移動。固定觀察 ${plant.interval} 天左右，確認光線、土壤與葉片狀態後再調整照護。`,
-        expertNote: `進階觀察可記錄新葉大小、節間距離、葉色變化與澆水後恢復速度，逐步找出這盆 ${plant.name} 在你家最舒服的位置。`
+      const fallbackByCategory = {
+        '室內觀葉': {
+          personality: '穩定、耐看、適合室內陪伴',
+          originStory: '這類植物多來自溫暖、濕潤或林下環境，因此通常喜歡明亮散射光，不適合長時間強烈直曬。',
+          funFact: '很多室內觀葉植物在原生環境中會攀附樹木或在林下生長，室內盆栽只是它們較小型的一面。',
+          beginnerTip: '先學會觀察土壤乾濕與葉片狀態，不要固定照日期澆水。',
+          expertNote: '觀察新葉大小、節間距離與葉色變化，可以判斷光照是否足夠。'
+        },
+        '多肉仙人掌': {
+          personality: '獨立、耐旱、怕被過度照顧',
+          originStory: '這類植物多適應乾燥或排水快速的環境，因此能儲存水分，但不耐長期潮濕。',
+          funFact: '多肉植物肥厚的葉片或莖，其實就是它們儲水的方式。',
+          beginnerTip: '寧可少澆，也不要讓介質長期潮濕。',
+          expertNote: '觀察徒長、葉片變薄或失去緊實感，可以判斷光照與水分是否失衡。'
+        },
+        '香草蔬菜': {
+          personality: '生長快、反應明顯、需要穩定照顧',
+          originStory: '許多香草植物需要較充足光照與通風，適合陽台或窗邊明亮處。',
+          funFact: '香草植物的香氣常來自揮發性物質，這些氣味也可能幫助植物抵禦昆蟲或環境壓力。',
+          beginnerTip: '香草植物通常比觀葉植物更需要光照，室內太暗容易長不好。',
+          expertNote: '觀察節間是否拉長、葉色是否變淡，可以判斷光照是否不足。'
+        },
+        '蕨類竹芋': {
+          personality: '細膩、喜濕、對環境變化敏感',
+          originStory: '這類植物常來自林下或濕度較高的環境，因此喜歡散射光與穩定濕度。',
+          funFact: '許多竹芋類植物晚上葉片角度會改變，看起來像在休息。',
+          beginnerTip: '不要讓環境太乾，也不要讓盆土長期積水。',
+          expertNote: '葉緣焦枯常與空氣乾燥、水質或根系壓力有關。'
+        },
+        '開花植物': {
+          personality: '有季節感、需要能量、開花時很有成就感',
+          originStory: '開花植物通常需要足夠光照與養分，才能支持花芽形成與開花。',
+          funFact: '植物開花是繁殖策略的一部分，花色、香氣與形狀常與授粉者有關。',
+          beginnerTip: '不要只看花漂亮，買回家後要確認它需要多少光照。',
+          expertNote: '花後修剪、光週期、溫度變化與養分管理都會影響下一次開花。'
+        },
+        '特殊植物': {
+          personality: '自由、特殊、需要通風與正確水分管理',
+          originStory: '空氣鳳梨多為附生植物，不靠土壤生長，而是附著在樹枝或岩石等表面。',
+          funFact: '空氣鳳梨不是靠空氣就能活，它仍然需要水、光線與通風。',
+          beginnerTip: '泡水或噴水後，一定要讓植株完全晾乾，尤其是葉心不能長時間積水。',
+          expertNote: '銀葉型通常較耐乾、綠葉型通常較需要水分，但都需要良好通風。'
+        }
       };
+      if (!plant.light) plant.light = '明亮散射光';
+      if (!plant.interval) plant.interval = 7;
+      const inferKnowledgeCategory = () => {
+        if (isAir) return '特殊植物';
+        if (['蘆薈', '多肉植物', '觀音蓮', '仙人掌', '仙人球', '玉露', '熊童子', '石蓮花', '酒瓶蘭'].includes(plant.name)) return '多肉仙人掌';
+        if (['薄荷', '羅勒', '迷迭香', '薰衣草', '九層塔', '香菜', '蔥'].includes(plant.name)) return '香草蔬菜';
+        if (['竹芋', '孔雀竹芋', '青蘋果竹芋', '鹿角蕨', '波士頓腎蕨', '鳥巢蕨', '鐵線蕨', '腎蕨高濕品種'].includes(plant.name)) return '蕨類竹芋';
+        if (['長壽花', '非洲菫', '蝴蝶蘭', '文心蘭', '玫瑰', '茉莉花', '梔子花', '日日春', '矮牽牛', '天竺葵', '繡球花', '聖誕紅'].includes(plant.name)) return '開花植物';
+        if (['捕蠅草', '豬籠草', '特殊斑葉品種'].includes(plant.name)) return '特殊植物';
+        return '室內觀葉';
+      };
+      const defaults = fallbackByCategory[inferKnowledgeCategory()] || fallbackByCategory['室內觀葉'];
       const byName = {
         '黃金葛': {
           personality: '隨和、耐陰、適合新手',
@@ -745,7 +794,14 @@
           expertNote: '觀察葉心、外葉基部與整株重量變化；大型植株水分進出速度比小型更值得記錄。'
         }
       };
-      return isAir ? { ...defaults, ...byName[plant.name] } : { ...defaults, ...(byName[plant.name] || {}) };
+      const merged = isAir ? { ...defaults, ...byName[plant.name] } : { ...defaults, ...(byName[plant.name] || {}) };
+      return {
+        personality: merged.personality || defaults.personality,
+        originStory: merged.originStory || defaults.originStory,
+        funFact: merged.funFact || defaults.funFact,
+        beginnerTip: merged.beginnerTip || defaults.beginnerTip,
+        expertNote: merged.expertNote || defaults.expertNote
+      };
     }
 
     const plantDatabase = [
@@ -867,10 +923,23 @@
     function getPlantCategory(plant) {
       if (firstPlantPicks.includes(plant.name)) return '第一盆首選';
       if (beginnerPlants.includes(plant.name)) return '新手友善';
+      if (plant.category) return plant.category;
       for (const [category, names] of Object.entries(categoryRules)) {
         if (names.includes(plant.name)) return category;
       }
       return '室內觀葉';
+    }
+
+    function ensurePlantKnowledge(plant) {
+      const fallback = buildPlantKnowledgeFields(plant);
+      return {
+        ...plant,
+        personality: plant.personality || fallback.personality,
+        originStory: plant.originStory || fallback.originStory,
+        funFact: plant.funFact || fallback.funFact,
+        beginnerTip: plant.beginnerTip || fallback.beginnerTip,
+        expertNote: plant.expertNote || fallback.expertNote
+      };
     }
 
     function getEaseLevel(plant) {
@@ -941,7 +1010,7 @@
 
     function filterPlantDatabase(category = '全部', keyword = '') {
       const q = keyword.trim().toLowerCase();
-      return sortPlantsByEase(plantDatabase.filter(p => {
+      return sortPlantsByEase(plantDatabase.map(ensurePlantKnowledge).filter(p => {
         const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category;
         const haystack = `${p.name} ${p.easeLevel} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
         const matchKeyword = !q || haystack.includes(q);
@@ -1125,7 +1194,7 @@
     }
 
     function getPlantInfo(name) {
-      return plantDatabase.find(p => p.name === name) || plantDatabase[0];
+      return ensurePlantKnowledge(plantDatabase.find(p => p.name === name) || plantDatabase[0]);
     }
 
     function nextWaterDate(plant) {
@@ -1258,7 +1327,8 @@
     }
 
     function dailyPlantFunFact() {
-      return plantDatabase[dailyIndex(plantDatabase.length, 11)];
+      const candidates = plantDatabase.map(ensurePlantKnowledge).filter(plant => plant.funFact);
+      return candidates[dailyIndex(candidates.length, 11)] || ensurePlantKnowledge(plantDatabase[0]);
     }
 
     function answeredQuizToday() {
@@ -1408,14 +1478,26 @@
         </div>`;
     }
 
+    function renderDailyPlantFunFactCard() {
+      const plantFact = dailyPlantFunFact();
+      const factRead = academySettings().plantFunFactDates[todayISO()];
+      return `<div class="card">
+          <h3>今日植物趣事</h3>
+          <p class="subtitle">${escapeHTML(plantFact.name)}｜${escapeHTML(getEaseLevel(plantFact))}</p>
+          <p>${escapeHTML(plantFact.funFact)}</p>
+          <div class="divider"></div>
+          <p class="hint">個性：${escapeHTML(plantFact.personality)}</p>
+          <p class="hint">原生地故事：${escapeHTML(plantFact.originStory)}</p>
+          <button class="full ${factRead ? 'secondary' : ''}" onclick="readDailyPlantFunFact()">${factRead ? '今天已閱讀今日植物趣事' : '閱讀今日趣事 +4XP'}</button>
+        </div>`;
+    }
+
     function renderAcademy() {
       const g = gameStats();
       const quiz = dailyQuiz();
       const answered = answeredQuizToday();
       const card = dailyKnowledgeCard();
       const read = academySettings().readCards[card.id];
-      const plantFact = dailyPlantFunFact();
-      const factRead = academySettings().plantFunFactDates[todayISO()];
       document.getElementById('screen-academy').innerHTML = `
         <h2>植物達人養成</h2>
         <p class="subtitle">每天學一點，從照護紀錄變成判斷能力。</p>
@@ -1453,15 +1535,7 @@
           <div class="recommend-list">${knowledgeCardCategories.map(category => `<span class="recommend-chip">${escapeHTML(category)}</span>`).join('')}</div>
         </div>
 
-        <div class="card">
-          <h3>今日植物趣事</h3>
-          <p class="subtitle">${escapeHTML(plantFact.name)}｜${escapeHTML(getEaseLevel(plantFact))}</p>
-          <p>${escapeHTML(plantFact.funFact)}</p>
-          <div class="divider"></div>
-          <p class="hint">個性：${escapeHTML(plantFact.personality)}</p>
-          <p class="hint">原生地故事：${escapeHTML(plantFact.originStory)}</p>
-          <button class="full ${factRead ? 'secondary' : ''}" onclick="readDailyPlantFunFact()">${factRead ? '今天已閱讀植物趣事' : '閱讀今日植物趣事 +4XP'}</button>
-        </div>
+        ${renderDailyPlantFunFactCard()}
 
         <div class="card">
           <h3>技能樹</h3>
@@ -2112,7 +2186,7 @@
       });
     });
 
-    appData.version = '1.4.0';
+    appData.version = '1.7.0';
     saveData();
     renderAll();
   </script>
