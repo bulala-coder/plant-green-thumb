@@ -648,6 +648,106 @@
       return legacyMap[legacyLevel] || '普通';
     }
 
+    function buildPlantKnowledgeFields(plant) {
+      const airPlantNames = ['空氣鳳梨', '小精靈空氣鳳梨', '松蘿空氣鳳梨', '女王頭空氣鳳梨', '電捲燙空氣鳳梨', '老人鬚', '空氣鳳梨霸王'];
+      const isAir = airPlantNames.includes(plant.name);
+      const ease = getEaseLevelByName(plant.name, plant.legacyDifficulty);
+      const defaults = {
+        personality: `${ease}、${plant.light.includes('散射') ? '喜歡柔和光' : '喜歡穩定環境'}、需要觀察節奏`,
+        originStory: `${plant.name}在自然環境中會依照當地光線、水分與通風調整生長。把它帶進室內時，最重要的是模仿「穩定光線、適度水分、空氣流動」這三件事。`,
+        funFact: `${plant.name}會用葉片狀態透露環境訊息；葉色、硬度、新芽速度與土壤乾濕，都是它和你溝通的方式。`,
+        beginnerTip: `先不要急著施肥或頻繁移動。固定觀察 ${plant.interval} 天左右，確認光線、土壤與葉片狀態後再調整照護。`,
+        expertNote: `進階觀察可記錄新葉大小、節間距離、葉色變化與澆水後恢復速度，逐步找出這盆 ${plant.name} 在你家最舒服的位置。`
+      };
+      const byName = {
+        '黃金葛': {
+          personality: '隨和、耐陰、適合新手',
+          originStory: '黃金葛原生於熱帶森林，常攀附樹幹往有光的地方生長；在室內也保留了耐陰與攀爬的個性。',
+          funFact: '黃金葛在野外成熟後葉片可能變得很大，室內常見的小葉只是它年輕、低調的一面。',
+          beginnerTip: '土壤偏乾再澆，寧可少一點水，也不要讓盆土長期濕答答。',
+          expertNote: '觀察節間是否拉長；如果藤蔓越長越稀疏，通常是在提醒你光線不足。'
+        },
+        '虎尾蘭': {
+          personality: '耐旱、慢熟、怕太熱情的澆水',
+          originStory: '虎尾蘭來自非洲乾燥地帶，厚實葉片能儲水，因此比起頻繁照顧，它更喜歡被安靜放著。',
+          funFact: '虎尾蘭常被叫作「懶人植物」，但真正的關鍵不是不用照顧，而是不要照顧過頭。',
+          beginnerTip: '乾透後再澆，盆底排水一定要順。',
+          expertNote: '若葉片變軟或基部發黑，多半和過濕有關；健康葉片應挺直、有支撐感。'
+        },
+        '金錢樹': {
+          personality: '耐陰、耐旱、慢慢來也很好',
+          originStory: '金錢樹原生於東非，地下塊莖能儲存水分，讓它能熬過乾燥時期。',
+          funFact: '金錢樹看起來像一片片亮亮的葉子，其實它的地下塊莖才是抗旱秘密基地。',
+          beginnerTip: '不要因為葉子亮就一直澆水；等介質乾了再澆最安全。',
+          expertNote: '新芽通常整支冒出，若長期無新芽可檢查光線是否過暗或根系是否過濕。'
+        },
+        '龜背芋': {
+          personality: '熱帶感、愛明亮、會往上探索',
+          originStory: '龜背芋原生於中南美洲熱帶雨林，會攀附樹木向上尋找光線。',
+          funFact: '龜背芋葉片上的裂孔可能有助於在雨林中分散風雨壓力，也讓光能穿透到下層葉片。',
+          beginnerTip: '給明亮散射光，避免烈日直曬；表土乾後再澆透。',
+          expertNote: '若新葉裂孔變少，常見原因是光線不足、植株太幼或支撐不足。'
+        },
+        '薄荷': {
+          personality: '生長快、愛喝水、香氣外向',
+          originStory: '薄荷常生長在較濕潤、日照充足的環境，地下莖擴張力強，很容易長成一片。',
+          funFact: '薄荷的清涼感來自薄荷醇，它會刺激皮膚與口腔的冷覺受器。',
+          beginnerTip: '陽台種植時要注意水分，缺水會很快垂頭，但也不要讓盆底積水。',
+          expertNote: '定期修剪可促進分枝；若枝條細長、香氣弱，通常需要更多光。'
+        },
+        '空氣鳳梨': {
+          personality: '不靠土、愛通風、外星感',
+          originStory: '空氣鳳梨多生長在中南美洲樹枝、岩石或電線般的附著位置，靠葉片吸收水分與空氣中的微量養分。',
+          funFact: '空氣鳳梨不需要土，但不是不需要水；它只是把「根吸水」的工作改成主要由葉片完成。',
+          beginnerTip: '泡水或噴水後必須完全晾乾，尤其葉心不能長時間積水。',
+          expertNote: '觀察葉片捲曲、銀色鱗片與葉心乾燥速度；通風比很多新手想像中更重要。'
+        },
+        '小精靈空氣鳳梨': {
+          personality: '小巧、好養、適合入門',
+          originStory: '小型空氣鳳梨常附生在明亮通風的枝條或岩面，體型小但很會利用空氣中的水氣。',
+          funFact: '小精靈體型迷你，很適合觀察空氣鳳梨「泡水後變飽、乾燥後變輕」的變化。',
+          beginnerTip: '泡水 10–20 分鐘後倒放晾乾，不要放進密閉玻璃瓶長期悶住。',
+          expertNote: '看葉尖是否乾枯、葉心是否積水；小型植株乾得快，但悶住也爛得快。'
+        },
+        '松蘿空氣鳳梨': {
+          personality: '垂墜、飄逸、很吃通風',
+          originStory: '松蘿空氣鳳梨常像銀灰色鬍鬚一樣掛在樹上，靠空氣流動帶來水氣與微量養分。',
+          funFact: '它看起來像簾子，其實是一串串細長植株互相纏在一起。',
+          beginnerTip: '乾燥環境可增加噴水頻率，但每次給水後都要讓整束充分通風。',
+          expertNote: '觀察內層是否悶黑腐爛；密集吊掛時要特別注意中間是否乾得掉。'
+        },
+        '女王頭空氣鳳梨': {
+          personality: '造型強烈、稍敏感、怕葉心積水',
+          originStory: '女王頭類型的空氣鳳梨常在明亮、通風良好的附生環境中形成漂亮放射葉型。',
+          funFact: '它的觀賞重點在葉形與中心結構，但也正因葉心明顯，積水時更容易出問題。',
+          beginnerTip: '泡水後要徹底倒放晾乾葉心，不要急著放回裝飾容器。',
+          expertNote: '觀察中心葉是否保持硬挺；若葉心變軟、變黑，要立刻改善通風與給水方式。'
+        },
+        '電捲燙空氣鳳梨': {
+          personality: '捲曲、有戲、缺水會更明顯',
+          originStory: '電捲燙空氣鳳梨以捲曲葉片聞名，在自然環境中依靠葉面鱗片吸收水分。',
+          funFact: '葉片捲曲程度常會隨水分狀態改變，像植物版的濕度提示器。',
+          beginnerTip: '泡水後輕甩水分並通風晾乾，不要讓水卡在葉縫裡。',
+          expertNote: '比較泡水前後葉片彈性與捲曲度，可判斷給水週期是否合適。'
+        },
+        '老人鬚': {
+          personality: '吊掛、空靈、通風控',
+          originStory: '老人鬚常垂掛在樹枝上，靠空氣流動與霧氣維持水分，是很典型的附生生活者。',
+          funFact: '老人鬚沒有你想像中那種明顯盆栽根系，整串都在和空氣交換水分。',
+          beginnerTip: '不要長期塞在瓶子或密閉容器裡；噴水後要讓整串都乾得掉。',
+          expertNote: '檢查內層是否變黑、變黏或掉段；這通常比外層葉尖乾更需要警覺。'
+        },
+        '空氣鳳梨霸王': {
+          personality: '大型、霸氣、需要穩定水分管理',
+          originStory: '大型空氣鳳梨在自然中需要明亮光線與良好空氣流動，葉片越大，葉心乾燥管理越重要。',
+          funFact: '體型大的空氣鳳梨很有存在感，但越大越要注意泡水後中心是否真的乾了。',
+          beginnerTip: '泡水 20–30 分鐘後完全晾乾，再放回展示位置。',
+          expertNote: '觀察葉心、外葉基部與整株重量變化；大型植株水分進出速度比小型更值得記錄。'
+        }
+      };
+      return isAir ? { ...defaults, ...byName[plant.name] } : { ...defaults, ...(byName[plant.name] || {}) };
+    }
+
     const plantDatabase = [
       { name: '黃金葛', legacyDifficulty: '低', interval: 6, light: '明亮散射光', watering: '土壤偏乾再澆透', note: '耐陰、好照顧，怕長期積水。' },
       { name: '虎尾蘭', legacyDifficulty: '低', interval: 12, light: '明亮散射光到半日照', watering: '乾透後再澆', note: '非常耐旱，最怕太常澆水。' },
@@ -727,7 +827,7 @@
       { name: '椒草類', legacyDifficulty: '低', interval: 7, light: '明亮散射光', watering: '偏乾再澆', note: '多數椒草葉片可儲水，室內好照顧，重點是不要太常澆水。' },
       { name: '腎蕨高濕品種', legacyDifficulty: '高', interval: 2, light: '明亮散射光', watering: '保持穩定濕潤與高濕', note: '對乾燥非常敏感，需要穩定濕度與通風，不建議新手直接挑戰。' },
       { name: '特殊斑葉品種', legacyDifficulty: '高', interval: 5, light: '明亮散射光', watering: '依品種調整，避免過乾或積水', note: '斑葉品種常需要更穩定的光線與照護，購買前要先確認品種需求。' },
-    ].map(plant => ({ ...plant, easeLevel: getEaseLevelByName(plant.name, plant.legacyDifficulty) }));
+    ].map(plant => ({ ...plant, ...buildPlantKnowledgeFields(plant), easeLevel: getEaseLevelByName(plant.name, plant.legacyDifficulty) }));
 
     const plantCategories = ['全部', '第一盆首選', '新手友善', '室內觀葉', '香草蔬菜', '多肉仙人掌', '蕨類竹芋', '開花植物', '大型植物', '特殊植物'];
     const easeCategories = ['全部', '第一盆首選', '很好養', '好養', '普通', '稍難', '高難度'];
@@ -843,7 +943,7 @@
       const q = keyword.trim().toLowerCase();
       return sortPlantsByEase(plantDatabase.filter(p => {
         const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category;
-        const haystack = `${p.name} ${p.easeLevel} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note}`.toLowerCase();
+        const haystack = `${p.name} ${p.easeLevel} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
         const matchKeyword = !q || haystack.includes(q);
         return matchCategory && matchKeyword;
       }));
@@ -936,17 +1036,23 @@
     ];
 
     const knowledgeCards = [
-      { id: 'K001', title: '澆水前先摸土', text: '很多植物不是忘記澆水死掉，而是太常澆水。手指插入土壤約 2 公分，如果仍潮濕，今天先不要澆。' },
-      { id: 'K002', title: '黃葉先別急著施肥', text: '黃葉可能來自過濕、缺光、根系受損或自然老葉代謝。先判斷水分與根系，再考慮肥料。' },
-      { id: 'K003', title: '光照不是只有有或沒有', text: '植物需要的是合適的光線強度與時間。明亮散射光通常比陰暗角落更適合多數室內觀葉。' },
-      { id: 'K004', title: '根也需要空氣', text: '排水不良或長期積水會讓根缺氧。土壤不是越濕越好，通氣同樣重要。' },
-      { id: 'K005', title: '新手先練習觀察', text: '觀察葉色、葉片硬度、土壤乾濕、盆重與新芽，比急著買肥料更重要。' },
-      { id: 'K006', title: '蟲害要先隔離', text: '發現介殼蟲、小黑飛或不明蟲害時，先把植物和其他盆栽分開，避免擴散。' },
-      { id: 'K007', title: '不要頻繁搬動敏感植物', text: '琴葉榕、竹芋等植物對環境變動較敏感。穩定光線與位置，常比反覆調整更好。' },
-      { id: 'K008', title: '施肥不是急救藥', text: '植物虛弱、爛根、蟲害或剛換盆時，不一定適合施肥。先讓環境與根系穩定。' },
-      { id: 'K009', title: '澆透不等於一直濕', text: '澆透是讓水均勻通過根系與介質；下一次澆水前，仍要等待合適乾燥程度。' },
-      { id: 'K010', title: '真正的綠手指會記錄', text: '記錄澆水、光照、葉況與變化，可以讓你從猜測變成判斷。' }
+      { id: 'K001', category: '澆水觀念', title: '澆水前先摸土', text: '很多植物不是忘記澆水死掉，而是太常澆水。手指插入土壤約 2 公分，如果仍潮濕，今天先不要澆。' },
+      { id: 'K002', category: '病蟲害觀察', title: '黃葉先別急著施肥', text: '黃葉可能來自過濕、缺光、根系受損或自然老葉代謝。先判斷水分與根系，再考慮肥料。' },
+      { id: 'K003', category: '光照知識', title: '光照不是只有有或沒有', text: '植物需要的是合適的光線強度與時間。明亮散射光通常比陰暗角落更適合多數室內觀葉。' },
+      { id: 'K004', category: '土壤與根系', title: '根也需要空氣', text: '排水不良或長期積水會讓根缺氧。土壤不是越濕越好，通氣同樣重要。' },
+      { id: 'K005', category: '新手常見誤區', title: '新手先練習觀察', text: '觀察葉色、葉片硬度、土壤乾濕、盆重與新芽，比急著買肥料更重要。' },
+      { id: 'K006', category: '病蟲害觀察', title: '蟲害要先隔離', text: '發現介殼蟲、小黑飛或不明蟲害時，先把植物和其他盆栽分開，避免擴散。' },
+      { id: 'K007', category: '新手常見誤區', title: '不要頻繁搬動敏感植物', text: '琴葉榕、竹芋等植物對環境變動較敏感。穩定光線與位置，常比反覆調整更好。' },
+      { id: 'K008', category: '新手常見誤區', title: '施肥不是急救藥', text: '植物虛弱、爛根、蟲害或剛換盆時，不一定適合施肥。先讓環境與根系穩定。' },
+      { id: 'K009', category: '澆水觀念', title: '澆透不等於一直濕', text: '澆透是讓水均勻通過根系與介質；下一次澆水前，仍要等待合適乾燥程度。' },
+      { id: 'K010', category: '植物趣事', title: '真正的綠手指會記錄', text: '記錄澆水、光照、葉況與變化，可以讓你從猜測變成判斷，也會慢慢看懂每盆植物不同的個性。' },
+      { id: 'K011', category: '原生地故事', title: '室內植物多半來自森林邊緣', text: '許多觀葉植物原本生活在熱帶森林下層或邊緣，所以喜歡明亮但柔和的光，而不是正午烈日。' },
+      { id: 'K012', category: '空氣鳳梨專區', title: '空氣鳳梨不需要土，但不是不需要水', text: '空氣鳳梨主要靠葉片吸收水分。它不需要土壤，卻仍需要規律給水、明亮散射光與良好通風。' },
+      { id: 'K013', category: '空氣鳳梨專區', title: '泡水後必須完全晾乾', text: '泡水後要倒放或放在通風處，讓葉心與葉縫完全乾掉。葉心長期積水很容易腐爛。' },
+      { id: 'K014', category: '空氣鳳梨專區', title: '別把空氣鳳梨長期悶在玻璃瓶', text: '密閉玻璃瓶雖然好看，但通風不足會讓水氣卡住。對空氣鳳梨來說，通風比很多新手想像中更重要。' }
     ];
+
+    const knowledgeCardCategories = ['澆水觀念', '光照知識', '土壤與根系', '植物趣事', '原生地故事', '病蟲害觀察', '新手常見誤區', '空氣鳳梨專區'];
 
     const skillDefs = [
       { key: 'water', icon: '💧', name: '澆水判斷', desc: '能判斷何時澆水、何時不要澆。' },
@@ -970,10 +1076,10 @@
     function blankData() {
       return {
         appName: '植物綠手指',
-        version: '1.4.0',
+        version: '1.7.0',
         plants: [],
         careLogs: [],
-        settings: { theme: 'light', reminderPreference: 'basic', onboardingCompleted: false, academy: { answeredQuizDates: {}, readCards: {} } }
+        settings: { theme: 'light', reminderPreference: 'basic', onboardingCompleted: false, academy: { answeredQuizDates: {}, readCards: {}, plantFunFactDates: {} } }
       };
     }
 
@@ -1031,7 +1137,7 @@
     }
 
     function careXp(type) {
-      const xpMap = { '觀察': 5, '澆水': 10, '施肥': 12, '修剪': 12, '換盆': 20, '除蟲': 18, '小測驗': 8, '知識卡': 4, '學習': 2 };
+      const xpMap = { '觀察': 5, '澆水': 10, '施肥': 12, '修剪': 12, '換盆': 20, '除蟲': 18, '小測驗': 8, '知識卡': 4, '植物趣事': 4, '學習': 2 };
       return xpMap[type] || 5;
     }
 
@@ -1130,6 +1236,7 @@
       if (!appData.settings.academy) appData.settings.academy = blankData().settings.academy;
       if (!appData.settings.academy.answeredQuizDates) appData.settings.academy.answeredQuizDates = {};
       if (!appData.settings.academy.readCards) appData.settings.academy.readCards = {};
+      if (!appData.settings.academy.plantFunFactDates) appData.settings.academy.plantFunFactDates = {};
       return appData.settings.academy;
     }
 
@@ -1148,6 +1255,10 @@
 
     function dailyKnowledgeCard() {
       return knowledgeCards[dailyIndex(knowledgeCards.length, 7)];
+    }
+
+    function dailyPlantFunFact() {
+      return plantDatabase[dailyIndex(plantDatabase.length, 11)];
     }
 
     function answeredQuizToday() {
@@ -1279,15 +1390,18 @@
     function renderDailyTraining() {
       const quiz = dailyQuiz();
       const card = dailyKnowledgeCard();
+      const plantFact = dailyPlantFunFact();
       const answered = answeredQuizToday();
       const read = academySettings().readCards[card.id];
+      const factRead = academySettings().plantFunFactDates[todayISO()];
       return `
         <div class="card game-card">
           <h3>今日修煉</h3>
           <p class="hint">真正的綠手指，知道什麼時候不出手。</p>
           <div class="divider"></div>
           <p>🧠 今日小測驗：${answered ? '已完成' : quiz.q}</p>
-          <p class="hint">📗 今日知識卡：${card.id}｜${escapeHTML(card.title)} ${read ? '（已閱讀）' : ''}</p>
+          <p class="hint">📗 今日知識卡：${card.category}｜${escapeHTML(card.title)} ${read ? '（已閱讀）' : ''}</p>
+          <p class="hint">🌿 今日植物趣事：${escapeHTML(plantFact.name)} ${factRead ? '（已閱讀）' : ''}</p>
           <div class="actions">
             <button class="small" onclick="setScreen('academy')">進入達人學院</button>
           </div>
@@ -1300,6 +1414,8 @@
       const answered = answeredQuizToday();
       const card = dailyKnowledgeCard();
       const read = academySettings().readCards[card.id];
+      const plantFact = dailyPlantFunFact();
+      const factRead = academySettings().plantFunFactDates[todayISO()];
       document.getElementById('screen-academy').innerHTML = `
         <h2>植物達人養成</h2>
         <p class="subtitle">每天學一點，從照護紀錄變成判斷能力。</p>
@@ -1325,9 +1441,26 @@
 
         <div class="card">
           <span class="card-number">${card.id.replace('K','')}</span>
+          <p class="hint">${escapeHTML(card.category)}</p>
           <h3>${escapeHTML(card.title)}</h3>
           <p>${escapeHTML(card.text)}</p>
           <button class="full ${read ? 'secondary' : ''}" onclick="readKnowledgeCard('${card.id}')">${read ? '已收藏這張知識卡' : '閱讀並收藏 +4XP'}</button>
+        </div>
+
+        <div class="card">
+          <h3>知識卡分類</h3>
+          <p class="hint">從照護觀念一路讀到原生地故事，慢慢變成植物達人。</p>
+          <div class="recommend-list">${knowledgeCardCategories.map(category => `<span class="recommend-chip">${escapeHTML(category)}</span>`).join('')}</div>
+        </div>
+
+        <div class="card">
+          <h3>今日植物趣事</h3>
+          <p class="subtitle">${escapeHTML(plantFact.name)}｜${escapeHTML(getEaseLevel(plantFact))}</p>
+          <p>${escapeHTML(plantFact.funFact)}</p>
+          <div class="divider"></div>
+          <p class="hint">個性：${escapeHTML(plantFact.personality)}</p>
+          <p class="hint">原生地故事：${escapeHTML(plantFact.originStory)}</p>
+          <button class="full ${factRead ? 'secondary' : ''}" onclick="readDailyPlantFunFact()">${factRead ? '今天已閱讀植物趣事' : '閱讀今日植物趣事 +4XP'}</button>
         </div>
 
         <div class="card">
@@ -1381,6 +1514,21 @@
       renderAll();
       setScreen('academy');
       showToast('已收藏知識卡，獲得 4 XP。');
+    }
+
+    function readDailyPlantFunFact() {
+      const academy = academySettings();
+      if (academy.plantFunFactDates[todayISO()]) {
+        showToast('今天已經閱讀過植物趣事。');
+        return;
+      }
+      const plant = dailyPlantFunFact();
+      academy.plantFunFactDates[todayISO()] = plant.name;
+      appData.careLogs.push({ id: uid('log'), plantId: null, type: '植物趣事', date: todayISO(), note: `今日植物趣事：${plant.name}。${plant.funFact}`, createdAt: new Date().toISOString() });
+      saveData();
+      renderAll();
+      setScreen('academy');
+      showToast('已閱讀今日植物趣事，獲得 4 XP。');
     }
 
     function renderToday() {
@@ -1626,6 +1774,14 @@
           <p>🌱 容易度：${escapeHTML(getEaseLevel(info))}</p>
           <p class="hint">${escapeHTML(info.note)}</p>
         </div>
+        <div class="card">
+          <h3>植物知識與趣事</h3>
+          <p>🏷️ 個性：${escapeHTML(info.personality)}</p>
+          <p>🌏 原生地故事：${escapeHTML(info.originStory)}</p>
+          <p>✨ 植物趣事：${escapeHTML(info.funFact)}</p>
+          <p>🌱 新手提醒：${escapeHTML(info.beginnerTip)}</p>
+          <p>🔎 進階觀察：${escapeHTML(info.expertNote)}</p>
+        </div>
         ${renderAirPlantReminder(info)}
         <div class="card">
           <h3>照護紀錄</h3>
@@ -1822,11 +1978,26 @@
           <h3>適合誰</h3>
           <p>${escapeHTML(getSuitableFor(p))}</p>
           <div class="divider"></div>
+          <h3>個性標籤</h3>
+          <p>${escapeHTML(p.personality)}</p>
+          <div class="divider"></div>
           <h3>新手購買建議</h3>
           <p>${escapeHTML(getBuyingAdvice(p))}</p>
           <div class="divider"></div>
           <h3>照護重點</h3>
           <p>${escapeHTML(p.note)}</p>
+          <div class="divider"></div>
+          <h3>原生地故事</h3>
+          <p>${escapeHTML(p.originStory)}</p>
+          <div class="divider"></div>
+          <h3>植物趣事</h3>
+          <p>${escapeHTML(p.funFact)}</p>
+          <div class="divider"></div>
+          <h3>新手提醒</h3>
+          <p>${escapeHTML(p.beginnerTip)}</p>
+          <div class="divider"></div>
+          <h3>進階觀察重點</h3>
+          <p>${escapeHTML(p.expertNote)}</p>
           <div class="divider"></div>
           <h3>基本需求</h3>
           <p>☀️ 光照：${escapeHTML(p.light)}</p>
