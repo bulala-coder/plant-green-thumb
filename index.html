@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="植物綠手指" />
-  <meta name="description" content="植物照護、遊戲化學習與植物達人養成 Web App。" />
+  <meta name="description" content="植物收藏管理、環境參數追蹤與進階照護決策 Web App。" />
   <link rel="manifest" href="./plant-green-thumb-manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="./plant-green-thumb-icon-192.png" />
   <link rel="apple-touch-icon" href="./plant-green-thumb-icon-192.png" />
@@ -598,7 +598,7 @@
         <div class="logo">🌱</div>
         <div>
           <h1>植物綠手指</h1>
-          <p class="subtitle">今天先看植物真正需要什麼</p>
+          <p class="subtitle">植物玩家的收藏管理與照護決策系統</p>
         </div>
       </div>
     </header>
@@ -613,15 +613,16 @@
     <section id="screen-knowledge" class="screen"></section>
     <section id="screen-knowledge-detail" class="screen"></section>
     <section id="screen-academy" class="screen"></section>
+    <section id="screen-analysis" class="screen"></section>
     <section id="screen-settings" class="screen"></section>
   </main>
 
   <nav class="nav">
-    <button data-nav="today" class="active"><span class="icon">☀️</span>今日</button>
-    <button data-nav="plants"><span class="icon">🪴</span>植物</button>
+    <button data-nav="today" class="active"><span class="icon">☀️</span>總覽</button>
+    <button data-nav="plants"><span class="icon">🪴</span>收藏</button>
     <button data-nav="diagnosis"><span class="icon">🩺</span>診斷</button>
     <button data-nav="knowledge"><span class="icon">📚</span>知識</button>
-    <button data-nav="academy"><span class="icon">🌟</span>達人</button>
+    <button data-nav="analysis"><span class="icon">📊</span>分析</button>
     <button data-nav="settings"><span class="icon">⚙️</span>設定</button>
   </nav>
 
@@ -889,6 +890,7 @@
     const easeCategories = ['全部', '第一盆首選', '很好養', '好養', '普通', '稍難', '高難度'];
     const easeFilterButtons = easeCategories.filter(c => c !== '全部');
     const easeRank = Object.fromEntries(easeCategories.map((level, index) => [level, index]));
+    const maintenanceCategories = ['低維護', '中等維護', '高濕敏感', '強光耐旱', '附生型', '開花觀賞', '特殊收藏'];
 
     const easeLevelGroups = {
       '第一盆首選': ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'],
@@ -900,12 +902,12 @@
     };
 
     const buyingGuideGroups = [
-      { level: '第一盆首選', title: '🌱 第一盆首選', desc: '最適合完全新手。先買這一區，成功率最高，也比較容易建立信心。', picks: ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'] },
+      { level: '第一盆首選', title: '🌱 低維護基礎款', desc: '容錯率高、適合作為收藏系統的穩定基準植物。', picks: ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'] },
       { level: '很好養', title: '🪴 很好養', desc: '容錯高，重點是不要太常澆水。適合作為前 3 盆植物。', picks: ['蘆薈', '仙人掌', '蔥', '萬年青', '白網紋草', '椒草類'] },
       { level: '好養', title: '🌿 好養', desc: '需要一點觀察習慣，但仍適合新手。適合有固定照護節奏後再買。', picks: ['龜背芋', '發財樹', '白鶴芋', '橡皮樹', '羅勒', '薄荷'] },
       { level: '普通', title: '☀️ 普通', desc: '需要比較穩定的光線、水分與通風。建議先養活 2–3 盆再挑戰。', picks: ['多肉植物', '空氣鳳梨', '鹿角蕨', '波士頓腎蕨', '非洲菫', '蝴蝶蘭'] },
       { level: '稍難', title: '🧪 稍難', desc: '對濕度、光照或環境變動較敏感。適合已有照護經驗的人。', picks: ['琴葉榕', '鐵線蕨', '竹芋類', '迷迭香', '薰衣草', '海芋'] },
-      { level: '高難度', title: '🏔 高難度', desc: '不建議作為第一盆。需要更細緻的環境控制與觀察能力。', picks: ['捕蠅草', '豬籠草', '腎蕨高濕品種', '特殊斑葉品種'] }
+      { level: '高難度', title: '🏔 高難度', desc: '需要更細緻的環境控制、介質策略與長期觀察能力。', picks: ['捕蠅草', '豬籠草', '腎蕨高濕品種', '特殊斑葉品種'] }
     ];
 
     const categoryRules = {
@@ -949,12 +951,12 @@
     function getEaseAdvice(plant) {
       const ease = getEaseLevel(plant);
       const advice = {
-        '第一盆首選': '最適合完全新手，容錯高，先從這類開始最穩。',
+        '第一盆首選': '低維護、容錯率高，可作為收藏管理的穩定基準。',
         '很好養': '照護簡單，只要避免過度澆水，多數人都能養好。',
         '好養': '適合有一點觀察習慣的新手，注意光照與排水即可。',
         '普通': '需要比較穩定的光照、水分與通風，適合第二階段挑戰。',
         '稍難': '對環境變化、水分或濕度較敏感，建議有經驗後再買。',
-        '高難度': '需要較精準的環境管理，不建議作為第一盆植物。'
+        '高難度': '需要較精準的環境管理、介質策略與長期狀態追蹤。'
       };
       return advice[ease] || advice['普通'];
     }
@@ -962,7 +964,7 @@
     function getSuitableFor(plant) {
       const ease = getEaseLevel(plant);
       const suitable = {
-        '第一盆首選': '完全新手、常忘記澆水、想先建立信心的人。',
+        '第一盆首選': '想建立穩定收藏基準、比較偏低維護管理的人。',
         '很好養': '新手、忙碌族、想低壓力增加植物數量的人。',
         '好養': '已有一點照護節奏，願意每週觀察光照與土壤的人。',
         '普通': '已養過幾盆植物，能穩定觀察水分、光照與通風的人。',
@@ -975,12 +977,12 @@
     function getBuyingAdvice(plant) {
       const ease = getEaseLevel(plant);
       const advice = {
-        '第一盆首選': '可以放心作為第一盆。購買時挑葉片飽滿、盆土不發臭、莖葉沒有軟爛的植株。',
+        '第一盆首選': '購買時挑葉片飽滿、盆土不發臭、莖葉沒有軟爛的植株，適合建立低維護收藏基準。',
         '很好養': '適合早期入手。先確認家中光線足夠，再選健康、無蟲、盆土不積水的植株。',
-        '好養': '建議先養活 1–2 盆第一盆首選後再買。購買後先放在穩定明亮處，不要急著換盆施肥。',
+        '好養': '購買後先放在穩定明亮處觀察適應狀態，不要急著換盆施肥。',
         '普通': '不要只看外型下手。先確認家中環境是否能提供穩定光線、通風與照護頻率。',
         '稍難': '建議有經驗後再買，並先查清楚濕度、光照與介質需求；剛帶回家先不要頻繁移動。',
-        '高難度': '不建議當第一盆。購買前請確認水質、濕度、光照或品種條件都能配合。'
+        '高難度': '購買前請確認水質、濕度、光照、介質或品種條件都能配合。'
       };
       return advice[ease] || advice['普通'];
     }
@@ -1011,8 +1013,8 @@
     function filterPlantDatabase(category = '全部', keyword = '') {
       const q = keyword.trim().toLowerCase();
       return sortPlantsByEase(plantDatabase.map(ensurePlantKnowledge).filter(p => {
-        const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category;
-        const haystack = `${p.name} ${p.easeLevel} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
+        const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category || maintenanceProfile(p) === category;
+        const haystack = `${p.name} ${p.easeLevel} ${maintenanceProfile(p)} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
         const matchKeyword = !q || haystack.includes(q);
         return matchCategory && matchKeyword;
       }));
@@ -1079,8 +1081,8 @@
 
 
     const titleStages = [
-      { min: 1, max: 5, title: '種子新手', ability: '知道不要亂澆水' },
-      { min: 6, max: 10, title: '發芽學徒', ability: '會觀察土壤與葉片' },
+      { min: 1, max: 5, title: '收藏紀錄員', ability: '建立基礎環境參數與照護紀錄' },
+      { min: 6, max: 10, title: '狀態觀察員', ability: '會觀察介質、盆重與葉片狀態' },
       { min: 11, max: 20, title: '綠葉園丁', ability: '能照顧常見室內植物' },
       { min: 21, max: 30, title: '植物照護員', ability: '能判斷光照與水分問題' },
       { min: 31, max: 40, title: '植物診斷師', ability: '能初步分辨病蟲害' },
@@ -1124,12 +1126,12 @@
     const knowledgeCardCategories = ['澆水觀念', '光照知識', '土壤與根系', '植物趣事', '原生地故事', '病蟲害觀察', '新手常見誤區', '空氣鳳梨專區'];
 
     const skillDefs = [
-      { key: 'water', icon: '💧', name: '澆水判斷', desc: '能判斷何時澆水、何時不要澆。' },
+      { key: 'water', icon: '💧', name: '觀察熟練度', desc: '能以介質、盆重與葉片狀態判斷水分。' },
       { key: 'light', icon: '☀️', name: '光照判斷', desc: '能辨認缺光、曬傷與徒長。' },
-      { key: 'soil', icon: '🪴', name: '土壤介質', desc: '理解排水、通氣與根系健康。' },
-      { key: 'growth', icon: '🌿', name: '施肥生長', desc: '知道何時施肥、修剪與換盆。' },
-      { key: 'diagnosis', icon: '🩺', name: '病蟲害診斷', desc: '能初步判斷葉黃、爛根與蟲害。' },
-      { key: 'record', icon: '📓', name: '觀察紀錄', desc: '用紀錄建立自己的照護系統。' }
+      { key: 'soil', icon: '🪴', name: '介質理解', desc: '理解排水、保水、通氣與根系健康。' },
+      { key: 'growth', icon: '🌿', name: '照護策略', desc: '能安排施肥、修剪、換盆與恢復期管理。' },
+      { key: 'diagnosis', icon: '🩺', name: '診斷熟練度', desc: '能進行葉黃、爛根與蟲害的鑑別診斷。' },
+      { key: 'record', icon: '📓', name: '照護紀錄完整度', desc: '用紀錄建立收藏管理與照護分析。' }
     ];
 
     let appData = loadData();
@@ -1137,9 +1139,9 @@
     let selectedKnowledge = null;
     let selectedSymptom = null;
     let selectedAddPlantName = '黃金葛';
-    let selectedAddCategory = '第一盆首選';
+    let selectedAddCategory = '低維護';
     let addPlantSearch = '';
-    let selectedKnowledgeCategory = '第一盆首選';
+    let selectedKnowledgeCategory = '低維護';
     let knowledgeSearch = '';
 
     function blankData() {
@@ -1203,6 +1205,63 @@
 
     function plantNeedsWater(plant) {
       return todayISO() >= nextWaterDate(plant);
+    }
+
+    function maintenanceProfile(plant) {
+      const info = getPlantInfo(plant.name || plant);
+      const category = getPlantCategory(info);
+      const ease = getEaseLevel(info);
+      if (isAirPlant(info)) return '附生型';
+      if (category === '特殊植物') return '特殊收藏';
+      if (category === '開花植物') return '開花觀賞';
+      if (category === '多肉仙人掌' || info.light.includes('強光')) return '強光耐旱';
+      if (category === '蕨類竹芋' || ['稍難', '高難度'].includes(ease)) return '高濕敏感';
+      if (['第一盆首選', '很好養', '好養'].includes(ease)) return '低維護';
+      return '中等維護';
+    }
+
+    function environmentValue(plant, key, fallback) {
+      return plant[key] || fallback;
+    }
+
+    function logsWithinDays(days, plantId = null) {
+      const cutoff = new Date(todayISO() + 'T00:00:00');
+      cutoff.setDate(cutoff.getDate() - Number(days || 0));
+      return appData.careLogs.filter(log => {
+        if (plantId && log.plantId !== plantId) return false;
+        if (!log.date) return false;
+        return new Date(log.date + 'T00:00:00') >= cutoff;
+      });
+    }
+
+    function mostCommonCareType(logs) {
+      const counts = logs.reduce((map, log) => {
+        map[log.type] = (map[log.type] || 0) + 1;
+        return map;
+      }, {});
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      return top ? `${top[0]}（${top[1]} 次）` : '尚無紀錄';
+    }
+
+    function averageWaterInterval(logs) {
+      const dates = [...new Set(logs.filter(l => l.type === '澆水' && l.date).map(l => l.date))].sort();
+      if (dates.length < 2) return '資料不足';
+      const gaps = dates.slice(1).map((date, i) => daysBetween(date, dates[i]));
+      const avg = gaps.reduce((sum, n) => sum + n, 0) / gaps.length;
+      return `${avg.toFixed(1)} 天`;
+    }
+
+    function careSummary30Days(plantId = null) {
+      const logs = logsWithinDays(30, plantId);
+      return {
+        logs,
+        waters: logs.filter(l => l.type === '澆水').length,
+        observations: logs.filter(l => l.type === '觀察').length,
+        fertilizers: logs.filter(l => l.type === '施肥').length,
+        abnormal: logs.filter(l => /葉黃|下垂|蟲害|爛|焦|異常|診斷|不確定/.test(l.note || '')).length,
+        avgWaterInterval: averageWaterInterval(logs),
+        topType: mostCommonCareType(logs)
+      };
     }
 
     function careXp(type) {
@@ -1280,8 +1339,8 @@
       const readCount = Object.values(academySettings().readCards || {}).filter(Boolean).length;
       const quizCount = appData.careLogs.filter(l => l.type === '小測驗').length;
       const badges = [
-        { name: '第一盆夥伴', icon: '🌱', unlocked: appData.plants.length >= 1 },
-        { name: '照護起步', icon: '💧', unlocked: appData.careLogs.length >= 1 },
+        { name: '收藏建檔', icon: '🌱', unlocked: appData.plants.length >= 1 },
+        { name: '紀錄啟動', icon: '💧', unlocked: appData.careLogs.length >= 1 },
         { name: '不亂澆水的人', icon: '🖐️', unlocked: appData.careLogs.filter(l => l.type === '觀察').length >= 5 },
         { name: '葉片觀察者', icon: '👀', unlocked: appData.careLogs.filter(l => l.type === '觀察').length >= 10 },
         { name: '植物小隊', icon: '🪴', unlocked: appData.plants.length >= 3 },
@@ -1365,11 +1424,15 @@
       return String(str ?? '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
     }
 
+    function selectedAttr(value, expected) {
+      return value === expected ? 'selected' : '';
+    }
+
     function setScreen(name) {
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
       document.getElementById(`screen-${name}`).classList.add('active');
       document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
-      const navMap = { today: 'today', plants: 'plants', add: 'plants', detail: 'plants', log: 'plants', diagnosis: 'diagnosis', 'diagnosis-result': 'diagnosis', knowledge: 'knowledge', 'knowledge-detail': 'knowledge', academy: 'academy', settings: 'settings' };
+      const navMap = { today: 'today', plants: 'plants', add: 'plants', detail: 'plants', log: 'plants', diagnosis: 'diagnosis', 'diagnosis-result': 'diagnosis', knowledge: 'knowledge', 'knowledge-detail': 'knowledge', academy: 'analysis', analysis: 'analysis', settings: 'settings' };
       const activeNav = document.querySelector(`[data-nav="${navMap[name]}"]`);
       if (activeNav) activeNav.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1382,6 +1445,7 @@
       renderDiagnosis();
       renderKnowledge();
       renderAcademy();
+      renderAnalysis();
       renderSettings();
       renderOnboarding();
       if (selectedPlantId) renderDetail(selectedPlantId);
@@ -1399,10 +1463,10 @@
       const readDone = Boolean(academySettings().readCards[card.id]);
       const observeDone = appData.careLogs.some(l => l.type === '觀察');
       return [
-        { icon: '🪴', title: '新增第一盆植物', desc: '建立自己的植物清單。', done: appData.plants.length > 0, action: "setScreen('add')", button: '新增植物' },
-        { icon: '👀', title: '完成一次觀察', desc: '先觀察，再決定要不要出手。', done: observeDone, action: appData.plants[0] ? `quickObserve('${appData.plants[0].id}')` : "setScreen('add')", button: appData.plants[0] ? '完成觀察' : '先新增植物' },
-        { icon: '🧠', title: '完成今日小測驗', desc: '用情境題練習植物判斷。', done: quizDone, action: "setScreen('academy')", button: '去測驗' },
-        { icon: '📗', title: '收藏今日知識卡', desc: '每天建立一個照護觀念。', done: readDone, action: "setScreen('academy')", button: '看知識卡' }
+        { icon: '🪴', title: '建立收藏資料', desc: '建立植物收藏與環境參數。', done: appData.plants.length > 0, action: "setScreen('add')", button: '建立收藏' },
+        { icon: '👀', title: '完成狀態觀察', desc: '用紀錄支持照護判斷。', done: observeDone, action: appData.plants[0] ? `quickObserve('${appData.plants[0].id}')` : "setScreen('add')", button: appData.plants[0] ? '記錄觀察' : '建立收藏' },
+        { icon: '🧠', title: '完成今日判讀題', desc: '用情境題練習鑑別診斷。', done: quizDone, action: "setScreen('academy')", button: '去判讀' },
+        { icon: '📗', title: '閱讀今日知識卡', desc: '補強照護觀念與植物知識。', done: readDone, action: "setScreen('academy')", button: '看知識卡' }
       ];
     }
 
@@ -1413,8 +1477,8 @@
         <div class="card top-quest">
           <div class="row">
             <div>
-              <h3>新手任務線</h3>
-              <p class="hint">完成這 4 步，就能開始真正的植物達人養成。</p>
+              <h3>收藏系統建立</h3>
+              <p class="hint">建立資料、觀察紀錄與知識基準，讓後續分析更可靠。</p>
             </div>
             <span class="level-pill">${done}/4</span>
           </div>
@@ -1433,11 +1497,11 @@
       if (completed) { el.classList.remove('show'); el.innerHTML = ''; return; }
       el.innerHTML = `
         <div class="onboarding-panel">
-          <h2>歡迎來到植物綠手指</h2>
-          <p class="subtitle">這不是催你每天澆水的 App，而是訓練你看懂植物需要什麼。</p>
-          <div class="onboarding-step"><div class="step-icon">🪴</div><div><strong>1. 新增第一盆植物</strong><p class="hint">建立清單後，首頁會幫你整理今日照護。</p></div></div>
-          <div class="onboarding-step"><div class="step-icon">👀</div><div><strong>2. 先觀察，再行動</strong><p class="hint">我們獎勵觀察與判斷，不鼓勵亂澆水。</p></div></div>
-          <div class="onboarding-step"><div class="step-icon">🌟</div><div><strong>3. 進入達人學院</strong><p class="hint">用小測驗、知識卡與技能樹慢慢變強。</p></div></div>
+          <h2>植物收藏管理系統</h2>
+          <p class="subtitle">追蹤環境參數、照護紀錄與診斷判斷，建立自己的收藏管理資料庫。</p>
+          <div class="onboarding-step"><div class="step-icon">🪴</div><div><strong>1. 建立收藏資料</strong><p class="hint">記錄介質、盆器、光照、通風、濕度與栽培環境。</p></div></div>
+          <div class="onboarding-step"><div class="step-icon">👀</div><div><strong>2. 追蹤狀態變化</strong><p class="hint">用觀察紀錄建立照護判斷，而不是只靠固定週期。</p></div></div>
+          <div class="onboarding-step"><div class="step-icon">📊</div><div><strong>3. 查看分析與能力系統</strong><p class="hint">用紀錄、知識卡與判讀題累積照護熟練度。</p></div></div>
           <button class="full" onclick="finishOnboarding()">開始使用</button>
         </div>`;
       el.classList.add('show');
@@ -1448,7 +1512,7 @@
       saveData();
       renderAll();
       setScreen('add');
-      showToast('先新增你的第一盆植物吧。');
+      showToast('先建立一筆植物收藏資料。');
     }
 
     function resetOnboarding() {
@@ -1466,14 +1530,14 @@
       const factRead = academySettings().plantFunFactDates[todayISO()];
       return `
         <div class="card game-card">
-          <h3>今日修煉</h3>
-          <p class="hint">真正的綠手指，知道什麼時候不出手。</p>
+          <h3>今日照護判斷</h3>
+          <p class="hint">以狀態追蹤、環境參數與紀錄分析做照護決策。</p>
           <div class="divider"></div>
           <p>🧠 今日小測驗：${answered ? '已完成' : quiz.q}</p>
           <p class="hint">📗 今日知識卡：${card.category}｜${escapeHTML(card.title)} ${read ? '（已閱讀）' : ''}</p>
           <p class="hint">🌿 今日植物趣事：${escapeHTML(plantFact.name)} ${factRead ? '（已閱讀）' : ''}</p>
           <div class="actions">
-            <button class="small" onclick="setScreen('academy')">進入達人學院</button>
+            <button class="small" onclick="setScreen('academy')">進入能力系統</button>
           </div>
         </div>`;
     }
@@ -1488,7 +1552,7 @@
           <div class="divider"></div>
           <p class="hint">個性：${escapeHTML(plantFact.personality)}</p>
           <p class="hint">原生地故事：${escapeHTML(plantFact.originStory)}</p>
-          <button class="full ${factRead ? 'secondary' : ''}" onclick="readDailyPlantFunFact()">${factRead ? '今天已閱讀今日植物趣事' : '閱讀今日趣事 +4XP'}</button>
+          <button class="full ${factRead ? 'secondary' : ''}" onclick="readDailyPlantFunFact()">${factRead ? '今天已閱讀今日植物趣事' : '閱讀今日趣事｜熟練度 +4'}</button>
         </div>`;
     }
 
@@ -1499,22 +1563,22 @@
       const card = dailyKnowledgeCard();
       const read = academySettings().readCards[card.id];
       document.getElementById('screen-academy').innerHTML = `
-        <h2>植物達人養成</h2>
-        <p class="subtitle">每天學一點，從照護紀錄變成判斷能力。</p>
+        <h2>能力系統</h2>
+        <p class="subtitle">以觀察、診斷、介質理解與紀錄完整度建立照護能力。</p>
         <div class="card game-card">
           <div class="level-row">
             <div>
               <h3>Lv.${g.level}｜${g.title.title}</h3>
               <p class="hint">目前能力：${g.title.ability}</p>
             </div>
-            <span class="level-pill">${g.xp} XP</span>
+            <span class="level-pill">能力點數 ${g.xp}</span>
           </div>
           <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
-          <p class="hint">距離下一級還差 ${g.nextXp} XP。</p>
+          <p class="hint">距離下一級還差 ${g.nextXp} 熟練度點數。</p>
         </div>
 
         <div class="card">
-          <h3>今日植物小測驗</h3>
+          <h3>今日照護判讀題</h3>
           ${answered ? `<p>今天已完成小測驗。</p><p class="hint">${escapeHTML(answered.explain || '')}</p>` : `
             <p>${escapeHTML(quiz.q)}</p>
             ${quiz.options.map((o, i) => `<button class="quiz-option" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join('')}
@@ -1526,7 +1590,7 @@
           <p class="hint">${escapeHTML(card.category)}</p>
           <h3>${escapeHTML(card.title)}</h3>
           <p>${escapeHTML(card.text)}</p>
-          <button class="full ${read ? 'secondary' : ''}" onclick="readKnowledgeCard('${card.id}')">${read ? '已收藏這張知識卡' : '閱讀並收藏 +4XP'}</button>
+          <button class="full ${read ? 'secondary' : ''}" onclick="readKnowledgeCard('${card.id}')">${read ? '已收藏這張知識卡' : '閱讀並收藏｜熟練度 +4'}</button>
         </div>
 
         <div class="card">
@@ -1538,8 +1602,8 @@
         ${renderDailyPlantFunFactCard()}
 
         <div class="card">
-          <h3>技能樹</h3>
-          <p class="hint">技能不是用猜的，而是從觀察、紀錄、測驗與正確照護累積。</p>
+          <h3>照護能力熟練度</h3>
+          <p class="hint">熟練度來自觀察、紀錄、測驗、診斷與正確照護決策。</p>
           <div class="academy-grid">
             ${skillDefs.map(skill => {
               const value = skillProgress(skill.key);
@@ -1554,7 +1618,7 @@
         </div>
 
         <div class="card">
-          <h3>能力型成就</h3>
+          <h3>照護能力標記</h3>
           <div class="badge-grid">${g.badges.map(b => `<span class="badge-pill ${b.unlocked ? '' : 'locked'}">${b.icon} ${b.name}</span>`).join('')}</div>
         </div>`;
     }
@@ -1572,7 +1636,7 @@
       saveData();
       renderAll();
       setScreen('academy');
-      showToast(correct ? '答對了，獲得 8 XP。' : '答錯沒關係，已記錄學習，獲得 2 XP。');
+      showToast(correct ? '答對了，熟練度 +8。' : '答錯沒關係，已記錄判讀練習，熟練度 +2。');
     }
 
     function readKnowledgeCard(cardId) {
@@ -1587,7 +1651,7 @@
       saveData();
       renderAll();
       setScreen('academy');
-      showToast('已收藏知識卡，獲得 4 XP。');
+      showToast('已收藏知識卡，熟練度 +4。');
     }
 
     function readDailyPlantFunFact() {
@@ -1602,7 +1666,7 @@
       saveData();
       renderAll();
       setScreen('academy');
-      showToast('已閱讀今日植物趣事，獲得 4 XP。');
+      showToast('已閱讀今日植物趣事，熟練度 +4。');
     }
 
     function renderToday() {
@@ -1610,30 +1674,33 @@
       const needs = plants.filter(plantNeedsWater);
       const watch = plants.filter(p => p.healthStatus && p.healthStatus !== '健康');
       const stable = plants.filter(p => !plantNeedsWater(p) && (!p.healthStatus || p.healthStatus === '健康'));
+      const summary7 = logsWithinDays(7);
       const html = `
-        <h2>今日修煉</h2>
-        <p class="subtitle">今天是 ${formatDate(todayISO())}｜先觀察，再行動。</p>
+        <h2>植物收藏總覽</h2>
+        <p class="subtitle">今天是 ${formatDate(todayISO())}｜以環境參數與狀態追蹤做照護判斷。</p>
         ${renderGameSummary()}
         ${renderDailyTraining()}
-        ${renderStarterQuest()}
         <div class="soft-card">
-          <h3>今日總覽</h3>
+          <h3>收藏狀態摘要</h3>
           <div class="grid-3">
-            <div class="stat"><strong>${needs.length}</strong><span>建議檢查澆水</span></div>
-            <div class="stat"><strong>${watch.length}</strong><span>需要觀察</span></div>
-            <div class="stat"><strong>${stable.length}</strong><span>狀況穩定</span></div>
+            <div class="stat"><strong>${plants.length}</strong><span>收藏植物數</span></div>
+            <div class="stat"><strong>${needs.length}</strong><span>今日需檢查水分</span></div>
+            <div class="stat"><strong>${watch.length}</strong><span>異常觀察數</span></div>
+            <div class="stat"><strong>${summary7.length}</strong><span>近 7 天紀錄</span></div>
+            <div class="stat"><strong>Lv.${gameStats().level}</strong><span>熟練度等級</span></div>
+            <div class="stat"><strong>${stable.length}</strong><span>狀態穩定</span></div>
           </div>
         </div>
         ${plants.length === 0 ? `
           <div class="card empty">
-            <h3>還沒有植物</h3>
-            <p>先新增你的第一盆植物，之後每天打開這裡，就能看到照護提醒。</p>
-            <button class="full" onclick="setScreen('add')">+ 新增植物</button>
+            <h3>尚未建立收藏</h3>
+            <p>建立植物收藏後，可追蹤介質、盆器、光照、通風、濕度與照護紀錄。</p>
+            <button class="full" onclick="setScreen('add')">+ 建立收藏</button>
           </div>` : ''}
         ${plants.map(p => todayPlantCard(p)).join('')}
         <div class="card">
-          <h3>今日提醒</h3>
-          <p>植物通常不是忘記照顧死掉，而是太常澆水出問題。先摸土，再決定。</p>
+          <h3>今日照護判斷</h3>
+          <p>先確認介質乾濕、盆重、葉片張力與近期環境變化，再決定是否澆水、移位或進一步診斷。</p>
         </div>`;
       document.getElementById('screen-today').innerHTML = html;
     }
@@ -1645,13 +1712,13 @@
         <div class="card game-card">
           <div class="level-row">
             <div>
-              <h3>Lv.${g.level}｜${g.title.title}</h3>
-              <p class="hint">${g.title.ability}。完成觀察、測驗與知識卡，就能累積真正能力。</p>
+              <h3>目前能力熟練度｜Lv.${g.level}</h3>
+              <p class="hint">${g.title.ability}。以觀察紀錄、診斷判斷與知識卡建立照護能力。</p>
             </div>
-            <span class="level-pill">🌟 ${g.title.title}</span>
+            <span class="level-pill">熟練度 ${g.currentXp}%</span>
           </div>
           <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
-          <p class="hint">目前 ${g.xp} XP｜距離下一級還差 ${g.nextXp} XP｜連續照護 ${g.streak} 天</p>
+          <p class="hint">能力點數 ${g.xp}｜距離下一級還差 ${g.nextXp}｜連續追蹤 ${g.streak} 天</p>
           <div class="badge-grid">${badges}</div>
         </div>`;
     }
@@ -1661,7 +1728,7 @@
       const next = nextWaterDate(p);
       const needsWater = plantNeedsWater(p);
       const abnormal = p.healthStatus && p.healthStatus !== '健康';
-      const advice = abnormal ? `目前狀態是「${escapeHTML(p.healthStatus)}」，建議先做症狀診斷。` : needsWater ? '建議今天檢查土壤。土壤 2 公分以下也乾了，再澆透。' : `今天先不用急著澆水。建議 ${formatDate(next)} 再檢查。`;
+      const advice = abnormal ? `目前狀態是「${escapeHTML(p.healthStatus)}」，建議進行鑑別診斷。` : needsWater ? '今日列入水分檢查清單；請確認介質 2 公分以下偏乾、盆重變輕再澆。' : `目前不需急著澆水。建議 ${formatDate(next)} 再檢查。`;
       return `
         <div class="card">
           <div class="row">
@@ -1671,11 +1738,11 @@
             </div>
             <span>${abnormal ? '👀' : needsWater ? '💧' : '🌿'}</span>
           </div>
+          <p class="hint">管理難度：${escapeHTML(maintenanceProfile(p))}｜介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}</p>
           <p class="hint">上次澆水：${formatDate(p.lastWateredAt)}｜下次建議：${formatDate(next)}</p>
-          <p class="hint">請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
           <p style="margin-top:10px;">${advice}</p>
           <div class="actions">
-            <button class="small secondary" onclick="quickObserve('${p.id}')">完成觀察 +5XP</button>
+            <button class="small secondary" onclick="quickObserve('${p.id}')">記錄觀察</button>
             <button class="small" onclick="quickWater('${p.id}')">記錄澆水</button>
             <button class="small secondary" onclick="openDetail('${p.id}')">查看</button>
           </div>
@@ -1686,39 +1753,43 @@
       const html = `
         <div class="row">
           <div>
-            <h2>我的植物</h2>
-            <p class="subtitle">目前共有 ${appData.plants.length} 盆植物</p>
+            <h2>植物收藏</h2>
+            <p class="subtitle">目前管理 ${appData.plants.length} 筆植物收藏與環境參數</p>
           </div>
-          <button class="small" onclick="setScreen('add')">+ 新增</button>
+          <button class="small" onclick="setScreen('add')">+ 建立收藏</button>
         </div>
-        ${appData.plants.length === 0 ? `<div class="card empty"><h3>你的植物清單是空的</h3><p>建立第一盆植物後，這裡會顯示澆水與健康狀態。</p><button class="full" onclick="setScreen('add')">新增植物</button></div>` : ''}
-        ${appData.plants.map(p => `
+        ${appData.plants.length === 0 ? `<div class="card empty"><h3>尚未建立植物收藏</h3><p>建立收藏後可追蹤介質、盆器、光照、通風、濕度與狀態。</p><button class="full" onclick="setScreen('add')">建立收藏</button></div>` : ''}
+        ${appData.plants.map(p => {
+          const info = getPlantInfo(p.name);
+          return `
           <div class="card">
             <div class="plant-title">🪴 ${escapeHTML(p.name)}</div>
             <p class="meta">暱稱：${escapeHTML(p.nickname || '未命名')}</p>
             <p class="meta">位置：${escapeHTML(p.location || '未設定')}</p>
             <div class="divider"></div>
+            <p>管理難度 / 養護型態：${escapeHTML(maintenanceProfile(p))}</p>
+            <p>介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜盆器：${escapeHTML(environmentValue(p, 'potMaterial', p.potSize || '未記錄'))}</p>
+            <p>光照：${escapeHTML(p.light || info.light)}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}｜濕度：${escapeHTML(environmentValue(p, 'humidity', '未記錄'))}</p>
             <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
-            <p>下次建議：${formatDate(nextWaterDate(p))}</p>
             <p>狀態：${escapeHTML(p.healthStatus || '健康')}</p>
             <div class="actions"><button class="secondary" onclick="openDetail('${p.id}')">查看詳情</button></div>
-          </div>
-        `).join('')}`;
+          </div>`;
+        }).join('')}`;
       document.getElementById('screen-plants').innerHTML = html;
     }
 
     function renderAdd() {
       if (!getPlantInfo(selectedAddPlantName)) selectedAddPlantName = plantDatabase[0].name;
       document.getElementById('screen-add').innerHTML = `
-        <h2>新增植物</h2>
-        <p class="subtitle">不再用長下拉選單。先選容易度，再搜尋植物名稱，點卡片後才會設定目前選擇。</p>
+        <h2>新增收藏植物</h2>
+        <p class="subtitle">建立收藏資料，記錄環境參數、介質策略與照護基準。</p>
         <div class="card">
           <label>搜尋植物</label>
           <div class="finder-tools">
             <input id="add-plant-search" placeholder="搜尋植物，例如：黃金葛、蘭、薄荷、仙人掌" value="${escapeHTML(addPlantSearch)}" oninput="setAddPlantSearch(this.value)" />
-            <label style="margin:0;">養的容易度</label>
+            <label style="margin:0;">管理難度 / 養護型態</label>
             <div class="category-row">
-              ${easeFilterButtons.map(c => `<button type="button" class="small ${selectedAddCategory === c ? '' : 'light'}" onclick="setAddPlantCategory('${c}')">${c}</button>`).join('')}
+              ${maintenanceCategories.map(c => `<button type="button" class="small ${selectedAddCategory === c ? '' : 'light'}" onclick="setAddPlantCategory('${c}')">${c}</button>`).join('')}
             </div>
             <div id="add-selected-plant" class="selected-plant"></div>
             <p id="add-result-count" class="result-count"></p>
@@ -1732,8 +1803,18 @@
           <select id="add-light"><option>強光</option><option selected>明亮散射光</option><option>半日照</option><option>陰暗</option></select>
           <label>盆器大小</label>
           <select id="add-pot"><option>小盆</option><option selected>中盆</option><option>大盆</option></select>
+          <label>盆器</label>
+          <select id="add-pot-material"><option>塑膠盆</option><option>陶盆</option><option>素燒盆</option><option>控根盆</option><option>水耕容器</option><option>其他</option></select>
           <label>土壤排水狀況</label>
           <select id="add-soil"><option selected>良好</option><option>普通</option><option>容易積水</option></select>
+          <label>介質</label>
+          <select id="add-substrate"><option>培養土</option><option>多肉土</option><option>顆粒介質</option><option>水苔</option><option>樹皮混合</option><option>無介質</option><option>其他</option></select>
+          <label>通風</label>
+          <select id="add-ventilation"><option selected>良好</option><option>普通</option><option>悶</option></select>
+          <label>濕度</label>
+          <select id="add-humidity"><option>乾燥</option><option selected>普通</option><option>潮濕</option><option>高濕</option></select>
+          <label>栽培環境</label>
+          <select id="add-growing-setup"><option selected>室內</option><option>陽台</option><option>戶外</option><option>高濕箱</option><option>溫室</option><option>水耕</option></select>
           <label>上次澆水日期</label>
           <input id="add-watered" type="date" value="${todayISO()}" />
           <label>目前狀態</label>
@@ -1769,11 +1850,11 @@
       const list = filterPlantDatabase(selectedAddCategory, addPlantSearch);
       selectedBox.innerHTML = `
         <strong>目前選擇：${escapeHTML(selected.name)}</strong>
-        <p class="hint">容易度：${escapeHTML(getEaseLevel(selected))}｜約 ${selected.interval} 天檢查澆水</p>`;
+        <p class="hint">管理難度：${escapeHTML(maintenanceProfile(selected))}｜約 ${selected.interval} 天檢查水分</p>`;
       count.textContent = `找到 ${list.length} 種植物`;
       picker.innerHTML = list.length ? list.map(p => `
         <button type="button" class="plant-option ${p.name === selectedAddPlantName ? 'active' : ''}" onclick='chooseAddPlant(${JSON.stringify(p.name)})'>
-          <span><strong>${escapeHTML(p.name)}</strong><small>容易度：${escapeHTML(getEaseLevel(p))}｜${escapeHTML(p.light)}</small></span>
+          <span><strong>${escapeHTML(p.name)}</strong><small>養護型態：${escapeHTML(maintenanceProfile(p))}｜${escapeHTML(p.light)}</small></span>
           <span>${p.name === selectedAddPlantName ? '✓' : '›'}</span>
         </button>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換個關鍵字，例如「蘭」「蕨」「多肉」「薄荷」。</p></div>`;
     }
@@ -1789,7 +1870,12 @@
         location: document.getElementById('add-location').value.trim(),
         light: document.getElementById('add-light').value,
         potSize: document.getElementById('add-pot').value,
+        potMaterial: document.getElementById('add-pot-material').value,
         soilDrainage: document.getElementById('add-soil').value,
+        substrateType: document.getElementById('add-substrate').value,
+        ventilation: document.getElementById('add-ventilation').value,
+        humidity: document.getElementById('add-humidity').value,
+        growingSetup: document.getElementById('add-growing-setup').value,
         lastWateredAt: document.getElementById('add-watered').value || todayISO(),
         waterIntervalDays: info.interval,
         easeLevel: getEaseLevel(info),
@@ -1818,6 +1904,7 @@
       if (!p) return;
       const info = getPlantInfo(p.name);
       const logs = appData.careLogs.filter(l => l.plantId === id).sort((a,b) => b.date.localeCompare(a.date));
+      const summary30 = careSummary30Days(id);
       document.getElementById('screen-detail').innerHTML = `
         <button class="light small" onclick="setScreen('plants')">← 返回</button>
         <div class="card">
@@ -1826,9 +1913,7 @@
           <div class="divider"></div>
           <h3>目前狀態</h3>
           <p>🌿 ${escapeHTML(p.healthStatus || '健康')}</p>
-          <p>⭐ 容易度：${escapeHTML(getEaseLevel(info))}｜照護間隔：約 ${p.waterIntervalDays || info.interval} 天檢查一次</p>
-          <p>🙋 適合誰：${escapeHTML(getSuitableFor(info))}</p>
-          <p>🛒 新手購買建議：${escapeHTML(getBuyingAdvice(info))}</p>
+          <p>⭐ 管理難度：${escapeHTML(maintenanceProfile(p))}｜水分檢查基準：約 ${p.waterIntervalDays || info.interval} 天</p>
           <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
           <p>建議下次檢查：${formatDate(nextWaterDate(p))}</p>
           <div class="actions">
@@ -1837,23 +1922,46 @@
           </div>
         </div>
         <div class="card">
-          <h3>今日建議</h3>
-          <p>${plantNeedsWater(p) ? '今天可以檢查土壤。若土壤 2 公分以下也乾了，再澆透。' : '今天先不用急著澆水。如果土壤表面還濕，請再等。'}</p>
-          <p class="hint">請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
+          <h3>目前環境參數</h3>
+          <p>栽培環境：${escapeHTML(environmentValue(p, 'growingSetup', '未記錄'))}</p>
+          <p>介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜盆器：${escapeHTML(environmentValue(p, 'potMaterial', p.potSize || '未記錄'))}</p>
+          <p>光照：${escapeHTML(p.light || info.light)}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}｜濕度：${escapeHTML(environmentValue(p, 'humidity', '未記錄'))}</p>
         </div>
         <div class="card">
-          <h3>基本照護</h3>
-          <p>💧 澆水：${escapeHTML(info.watering)}</p>
-          <p>☀️ 光照：${escapeHTML(info.light)}</p>
-          <p>🌱 容易度：${escapeHTML(getEaseLevel(info))}</p>
-          <p class="hint">${escapeHTML(info.note)}</p>
+          <h3>編輯環境參數</h3>
+          <label>通風</label>
+          <select id="edit-ventilation"><option ${selectedAttr(p.ventilation, '良好')}>良好</option><option ${selectedAttr(p.ventilation, '普通')}>普通</option><option ${selectedAttr(p.ventilation, '悶')}>悶</option></select>
+          <label>濕度</label>
+          <select id="edit-humidity"><option ${selectedAttr(p.humidity, '乾燥')}>乾燥</option><option ${selectedAttr(p.humidity || '普通', '普通')}>普通</option><option ${selectedAttr(p.humidity, '潮濕')}>潮濕</option><option ${selectedAttr(p.humidity, '高濕')}>高濕</option></select>
+          <label>盆器</label>
+          <select id="edit-pot-material"><option ${selectedAttr(p.potMaterial, '塑膠盆')}>塑膠盆</option><option ${selectedAttr(p.potMaterial, '陶盆')}>陶盆</option><option ${selectedAttr(p.potMaterial, '素燒盆')}>素燒盆</option><option ${selectedAttr(p.potMaterial, '控根盆')}>控根盆</option><option ${selectedAttr(p.potMaterial, '水耕容器')}>水耕容器</option><option ${selectedAttr(p.potMaterial, '其他')}>其他</option></select>
+          <label>介質</label>
+          <select id="edit-substrate"><option ${selectedAttr(p.substrateType, '培養土')}>培養土</option><option ${selectedAttr(p.substrateType, '多肉土')}>多肉土</option><option ${selectedAttr(p.substrateType, '顆粒介質')}>顆粒介質</option><option ${selectedAttr(p.substrateType, '水苔')}>水苔</option><option ${selectedAttr(p.substrateType, '樹皮混合')}>樹皮混合</option><option ${selectedAttr(p.substrateType, '無介質')}>無介質</option><option ${selectedAttr(p.substrateType, '其他')}>其他</option></select>
+          <label>栽培環境</label>
+          <select id="edit-growing-setup"><option ${selectedAttr(p.growingSetup, '室內')}>室內</option><option ${selectedAttr(p.growingSetup, '陽台')}>陽台</option><option ${selectedAttr(p.growingSetup, '戶外')}>戶外</option><option ${selectedAttr(p.growingSetup, '高濕箱')}>高濕箱</option><option ${selectedAttr(p.growingSetup, '溫室')}>溫室</option><option ${selectedAttr(p.growingSetup, '水耕')}>水耕</option></select>
+          <button class="full secondary" onclick="savePlantEnvironment('${p.id}')">更新環境參數</button>
+        </div>
+        <div class="card">
+          <h3>專業照護資訊</h3>
+          <p>🌏 原生棲地：${escapeHTML(info.originStory)}</p>
+          <p>🪴 介質偏好：依 ${escapeHTML(maintenanceProfile(p))} 管理，確保排水、保水與根系通氣平衡。</p>
+          <p>💧 澆水策略：${escapeHTML(info.watering)}</p>
+          <p>☀️ 光照策略：${escapeHTML(info.light)}</p>
+          <p>⚠️ 常見錯誤：固定照日期澆水、忽略通風與盆器排水、未追蹤新葉與根系反應。</p>
+          <p>🔬 進階照護：${escapeHTML(info.expertNote)}</p>
+        </div>
+        <div class="card">
+          <h3>最近 30 天照護摘要</h3>
+          <p>澆水：${summary30.waters} 次｜觀察：${summary30.observations} 次｜施肥：${summary30.fertilizers} 次</p>
+          <p>異常紀錄：${summary30.abnormal} 筆｜平均澆水間隔：${summary30.avgWaterInterval}</p>
+          <p>最常照護類型：${escapeHTML(summary30.topType)}</p>
         </div>
         <div class="card">
           <h3>植物知識與趣事</h3>
           <p>🏷️ 個性：${escapeHTML(info.personality)}</p>
           <p>🌏 原生地故事：${escapeHTML(info.originStory)}</p>
           <p>✨ 植物趣事：${escapeHTML(info.funFact)}</p>
-          <p>🌱 新手提醒：${escapeHTML(info.beginnerTip)}</p>
+          <p>🌱 照護提醒：${escapeHTML(info.beginnerTip)}</p>
           <p>🔎 進階觀察：${escapeHTML(info.expertNote)}</p>
         </div>
         ${renderAirPlantReminder(info)}
@@ -1869,6 +1977,21 @@
       selectedPlantId = id;
       renderLog(id);
       setScreen('log');
+    }
+
+    function savePlantEnvironment(id) {
+      const p = appData.plants.find(x => x.id === id);
+      if (!p) return;
+      p.ventilation = document.getElementById('edit-ventilation').value;
+      p.humidity = document.getElementById('edit-humidity').value;
+      p.potMaterial = document.getElementById('edit-pot-material').value;
+      p.substrateType = document.getElementById('edit-substrate').value;
+      p.growingSetup = document.getElementById('edit-growing-setup').value;
+      p.updatedAt = new Date().toISOString();
+      saveData();
+      renderAll();
+      renderDetail(id);
+      showToast('環境參數已更新。');
     }
 
     function renderLog(id) {
@@ -1942,14 +2065,14 @@
 
     function renderDiagnosis() {
       document.getElementById('screen-diagnosis').innerHTML = `
-        <h2>症狀診斷</h2>
-        <p class="subtitle">植物看起來怪怪的嗎？先選最明顯的症狀。</p>
+        <h2>鑑別診斷</h2>
+        <p class="subtitle">以症狀、環境參數與近期照護紀錄進行判讀。</p>
         <div class="card">
           ${Object.keys(symptomDatabase).map(s => `<div class="symptom-item" onclick="openDiagnosisResult('${s}')"><span>${escapeHTML(s)}</span><span>›</span></div>`).join('')}
         </div>
         <div class="soft-card">
-          <h3>小提醒</h3>
-          <p>不確定原因時，不要急著施肥。很多問題其實是水分或根系問題。</p>
+          <h3>判讀原則</h3>
+          <p>先排除水分、根系、光照與通風，再考慮肥料或病蟲害處置。</p>
         </div>`;
     }
 
@@ -1965,28 +2088,32 @@
       document.getElementById('screen-diagnosis-result').innerHTML = `
         <button class="light small" onclick="setScreen('diagnosis')">← 返回診斷</button>
         <div class="card">
-          <h2>診斷結果：${escapeHTML(symptom)}</h2>
-          <h3>可能原因</h3>
+          <h2>鑑別診斷：${escapeHTML(symptom)}</h2>
+          <h3>鑑別診斷</h3>
           <p>${s.causes.map((c, i) => `${i + 1}. ${escapeHTML(c)}`).join('<br>')}</p>
           <div class="divider"></div>
-          <h3>嚴重程度</h3>
-          <p>${escapeHTML(s.severity)}</p>
+          <h3>追問清單</h3>
+          <p>1. 最近 7 天是否澆水或換位置？<br>2. 介質是否長期潮濕或完全乾透？<br>3. 光照、通風、濕度是否近期改變？<br>4. 葉背、莖節與盆土表面是否有蟲害或霉味？</p>
           <div class="divider"></div>
-          <h3>今天先做這些</h3>
+          <h3>優先排除項目</h3>
+          <p>水分失衡 → 根系缺氧 → 光照不符 → 通風不足 → 病蟲害。</p>
+          <div class="divider"></div>
+          <h3>今日處置</h3>
           <p>${s.today.map((c, i) => `${i + 1}. ${escapeHTML(c)}`).join('<br>')}</p>
           <div class="divider"></div>
-          <h3>接下來 7 天觀察</h3>
+          <h3>7 天觀察指標</h3>
           <p>${escapeHTML(s.plan)}</p>
           <div class="divider"></div>
-          <h3>需要警覺的情況</h3>
+          <h3>風險等級與警訊</h3>
+          <p>${escapeHTML(s.severity)}</p>
           <p class="warning">${escapeHTML(s.warning)}</p>
         </div>`;
     }
 
     function renderBuyingGuide() {
       return `<div class="card">
-        <h3>還沒有植物嗎？先從好養的開始</h3>
-        <p class="hint">如果你是第一次養植物，建議先從容錯率高的植物開始，例如黃金葛、虎尾蘭、金錢樹、吊蘭。</p>
+        <h3>尚未建立收藏？可從低維護品種開始</h3>
+        <p class="hint">若要建立穩定的收藏基準，可先選擇黃金葛、虎尾蘭、金錢樹、吊蘭等容錯率高的品種。</p>
       </div>`;
     }
 
@@ -1998,9 +2125,9 @@
         <div class="card">
           <h3>搜尋植物</h3>
           <input id="knowledge-search" placeholder="搜尋植物，例如：蘭、蕨、多肉、香草" value="${escapeHTML(knowledgeSearch)}" oninput="setKnowledgeSearch(this.value)" />
-          <label style="margin-bottom:0;">養的容易度</label>
+          <label style="margin-bottom:0;">管理難度 / 養護型態</label>
           <div class="category-row" style="margin-top:10px;">
-            ${easeFilterButtons.map(c => `<button type="button" class="small ${selectedKnowledgeCategory === c ? '' : 'light'}" onclick="setKnowledgeCategory('${c}')">${c}</button>`).join('')}
+            ${maintenanceCategories.map(c => `<button type="button" class="small ${selectedKnowledgeCategory === c ? '' : 'light'}" onclick="setKnowledgeCategory('${c}')">${c}</button>`).join('')}
           </div>
           <p id="knowledge-result-count" class="result-count"></p>
           <div id="knowledge-list"></div>
@@ -2024,7 +2151,7 @@
       if (!listEl || !countEl) return;
       const list = filterPlantDatabase(selectedKnowledgeCategory, knowledgeSearch);
       countEl.textContent = `找到 ${list.length} 種植物`;
-      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><span class="ease-pill">${escapeHTML(getEaseLevel(p))}</span><p class="hint">${escapeHTML(getPlantCategory(p))}｜約 ${p.interval} 天檢查澆水</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換容易度，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
+      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><span class="ease-pill">${escapeHTML(maintenanceProfile(p))}</span><p class="hint">${escapeHTML(getPlantCategory(p))}｜約 ${p.interval} 天檢查水分</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換管理難度，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
     }
 
     function openKnowledge(name) {
@@ -2039,7 +2166,7 @@
         <button class="light small" onclick="setScreen('knowledge')">← 返回知識庫</button>
         <div class="card">
           <h2>${escapeHTML(p.name)}</h2>
-          <p class="subtitle">容易度：${escapeHTML(getEaseLevel(p))}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
+          <p class="subtitle">管理難度：${escapeHTML(maintenanceProfile(p))}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
           <div class="divider"></div>
           <h3>適合誰</h3>
           <p>${escapeHTML(getSuitableFor(p))}</p>
@@ -2047,7 +2174,7 @@
           <h3>個性標籤</h3>
           <p>${escapeHTML(p.personality)}</p>
           <div class="divider"></div>
-          <h3>新手購買建議</h3>
+          <h3>入手與配置建議</h3>
           <p>${escapeHTML(getBuyingAdvice(p))}</p>
           <div class="divider"></div>
           <h3>照護重點</h3>
@@ -2059,7 +2186,7 @@
           <h3>植物趣事</h3>
           <p>${escapeHTML(p.funFact)}</p>
           <div class="divider"></div>
-          <h3>新手提醒</h3>
+          <h3>照護提醒</h3>
           <p>${escapeHTML(p.beginnerTip)}</p>
           <div class="divider"></div>
           <h3>進階觀察重點</h3>
@@ -2077,9 +2204,39 @@
     function startAddPlant(name) {
       const info = getPlantInfo(name);
       selectedAddPlantName = info.name;
-      selectedAddCategory = getEaseLevel(info);
+      selectedAddCategory = maintenanceProfile(info);
       addPlantSearch = '';
       setScreen('add');
+    }
+
+    function renderAnalysis() {
+      const summary = careSummary30Days();
+      const abnormalPlants = appData.plants.filter(p => p.healthStatus && p.healthStatus !== '健康').length;
+      const profiles = appData.plants.reduce((map, plant) => {
+        const key = maintenanceProfile(plant);
+        map[key] = (map[key] || 0) + 1;
+        return map;
+      }, {});
+      document.getElementById('screen-analysis').innerHTML = `
+        <h2>照護分析</h2>
+        <p class="subtitle">以最近 30 天紀錄檢視收藏狀態、照護節奏與風險訊號。</p>
+        <div class="card">
+          <h3>近 30 天照護統計</h3>
+          <div class="grid-3">
+            <div class="stat"><strong>${summary.waters}</strong><span>澆水次數</span></div>
+            <div class="stat"><strong>${summary.observations}</strong><span>觀察次數</span></div>
+            <div class="stat"><strong>${summary.fertilizers}</strong><span>施肥次數</span></div>
+            <div class="stat"><strong>${summary.abnormal}</strong><span>異常紀錄數</span></div>
+            <div class="stat"><strong>${summary.avgWaterInterval}</strong><span>平均澆水間隔</span></div>
+            <div class="stat"><strong>${escapeHTML(summary.topType)}</strong><span>最常照護類型</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>收藏狀態摘要</h3>
+          <p>收藏植物：${appData.plants.length} 筆｜異常狀態：${abnormalPlants} 筆</p>
+          <p>養護型態分布：${Object.entries(profiles).map(([k, v]) => `${escapeHTML(k)} ${v}`).join('｜') || '尚無資料'}</p>
+          <button class="full secondary" onclick="setScreen('academy')">查看能力系統</button>
+        </div>`;
     }
 
     function renderSettings() {
@@ -2087,12 +2244,12 @@
       document.getElementById('screen-settings').innerHTML = `
         <h2>設定</h2>
         <div class="card game-card">
-          <h3>達人養成進度</h3>
-          <p>綠手指等級：Lv.${g.level}｜${g.title.title}</p>
+          <h3>能力系統摘要</h3>
+          <p>熟練度等級：Lv.${g.level}｜${g.title.title}</p>
           <div class="xp-bar"><div class="xp-fill" style="--xp:${g.currentXp}%"></div></div>
-          <p class="hint">總經驗值：${g.xp} XP｜連續照護：${g.streak} 天</p>
+          <p class="hint">能力點數：${g.xp}｜連續追蹤：${g.streak} 天</p>
           <div class="badge-grid">${g.badges.map(b => `<span class="badge-pill ${b.unlocked ? '' : 'locked'}">${b.icon} ${b.name}</span>`).join('')}</div>
-          <button class="full secondary" onclick="setScreen('academy')">查看植物達人養成</button>
+          <button class="full secondary" onclick="setScreen('academy')">查看能力系統</button>
         </div>
         <div class="card">
           <h3>資料備份</h3>
@@ -2118,7 +2275,7 @@
             <li>選擇「加入主畫面」。</li>
             <li>桌面會出現「植物綠手指」。</li>
           </ol>
-          <button class="full secondary" onclick="resetOnboarding()">重新觀看新手教學</button>
+          <button class="full secondary" onclick="resetOnboarding()">重新觀看系統導覽</button>
         </div>
         <div class="card">
           <h3 class="danger-text">危險操作</h3>
