@@ -1,7 +1,7 @@
 {
   "name": "植物綠手指",
   "short_name": "綠手指",
-  "description": "植物照護、遊戲化學習與植物達人養成 Web App。",
+  "description": "植物收藏管理、環境參數追蹤與進階照護決策 Web App。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
