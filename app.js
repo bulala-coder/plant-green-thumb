@@ -95,6 +95,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         '入門收藏': '低維護、容錯率高，可作為收藏管理的穩定基準。',
         '低維護': '照護負荷低，重點是避免過度澆水與長期悶濕。',
         '基礎管理': '適合已建立觀察節奏的收藏者，需注意光照、排水與通風。',
+        '中等維護': '需要穩定觀察光照、介質乾濕與生長節律。',
+        '中高維護': '需要更細緻的環境判斷、通風與乾濕循環管理。',
+        '高階收藏': '適合具備環境控制與長期追蹤能力的收藏者。',
         '普通': '需要比較穩定的光照、水分與通風，適合第二階段挑戰。',
         '稍難': '對環境變化、水分或濕度較敏感，建議有經驗後再買。',
         '高難度': '需要較精準的環境管理、介質策略與長期狀態追蹤。'
@@ -108,6 +111,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         '入門收藏': '想建立穩定收藏基準、偏好低維護管理的人。',
         '低維護': '想降低照護負擔、穩定擴充植物數量的人。',
         '基礎管理': '已有固定照護節奏，願意每週觀察光照、土壤與通風的人。',
+        '中等維護': '能定期觀察根系、介質狀態與生長節律的收藏者。',
+        '中高維護': '願意依品種差異調整光照、水分、通風與季節節律的人。',
+        '高階收藏': '具備高光、高濕、強通風或特殊栽培條件管理能力的人。',
         '普通': '已養過幾盆植物，能穩定觀察水分、光照與通風的人。',
         '稍難': '有照護經驗，能調整濕度、光線與環境穩定度的人。',
         '高難度': '進階玩家，願意研究介質、水質、濕度與品種需求的人。'
@@ -121,6 +127,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         '入門收藏': '購買時挑葉片飽滿、盆土不發臭、莖葉沒有軟爛的植株，適合建立低維護收藏基準。',
         '低維護': '先確認環境光線足夠，再選健康、無蟲、盆土不積水的植株。',
         '基礎管理': '購買後先放在穩定明亮處觀察適應狀態，不要急著換盆施肥。',
+        '中等維護': '購買時確認根系狀態、介質新舊與花後管理需求。',
+        '中高維護': '購買前先確認品種習性、光照需求、休眠或復花條件。',
+        '高階收藏': '購買前請先確認環境能提供足夠光線、濕度、通風與補水節奏。',
         '普通': '不要只看外型下手。先確認家中環境是否能提供穩定光線、通風與照護頻率。',
         '稍難': '建議有經驗後再買，並先查清楚濕度、光照與介質需求；剛帶回家先不要頻繁移動。',
         '高難度': '購買前請確認水質、濕度、光照、介質或品種條件都能配合。'
@@ -249,6 +258,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
 
     function maintenanceProfile(plant) {
       const info = getPlantInfo(plant.name || plant);
+      if (info.managementType) return info.managementType;
       const category = getPlantCategory(info);
       const ease = normalizeEaseLevel(getEaseLevel(info));
       if (isAirPlant(info)) return '附生型';
@@ -985,12 +995,12 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         </div>
         <div class="card">
           <h3>專業照護資訊</h3>
-          <p>🌏 原生棲地：${escapeHTML(info.originStory)}</p>
-          <p>🪴 介質偏好：依 ${escapeHTML(maintenanceProfile(p))} 管理，確保排水、保水與根系通氣平衡。</p>
-          <p>💧 澆水策略：${escapeHTML(info.watering)}</p>
-          <p>☀️ 光照策略：${escapeHTML(info.light)}</p>
-          <p>⚠️ 常見錯誤：固定照日期澆水、忽略通風與盆器排水、未追蹤新葉與根系反應。</p>
-          <p>🔬 進階照護：${escapeHTML(info.expertNote)}</p>
+          <p>🌏 原生棲地：${escapeHTML(info.nativeHabitat || info.originStory)}</p>
+          <p>🪴 介質偏好：${escapeHTML(info.substratePreference || `依 ${maintenanceProfile(p)} 管理，確保排水、保水與根系通氣平衡。`)}</p>
+          <p>💧 澆水策略：${escapeHTML(info.wateringStrategy || info.watering)}</p>
+          <p>☀️ 光照策略：${escapeHTML(info.lightStrategy || info.light)}</p>
+          <p>⚠️ 常見錯誤：${escapeHTML(info.commonMistakes || '固定照日期澆水、忽略通風與盆器排水、未追蹤新葉與根系反應。')}</p>
+          <p>🔬 進階照護：${escapeHTML(info.advancedCare || info.expertNote)}</p>
         </div>
         <div class="card">
           <h3>最近 30 天照護摘要</h3>
@@ -1226,16 +1236,16 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <p>${escapeHTML(p.originStory)}</p>
           <div class="divider"></div>
           <h3>介質偏好</h3>
-          <p>依 ${escapeHTML(maintenanceProfile(p))} 管理，優先確認排水、保水與根系通氣平衡。</p>
+          <p>${escapeHTML(p.substratePreference || `依 ${maintenanceProfile(p)} 管理，優先確認排水、保水與根系通氣平衡。`)}</p>
           <div class="divider"></div>
           <h3>澆水策略</h3>
-          <p>${escapeHTML(p.watering)}；實際操作仍以介質乾濕、盆重與葉片張力判斷。</p>
+          <p>${escapeHTML(p.wateringStrategy || `${p.watering}；實際操作仍以介質乾濕、盆重與葉片張力判斷。`)}</p>
           <div class="divider"></div>
           <h3>光照策略</h3>
-          <p>${escapeHTML(p.light)}；觀察新葉大小、節間距離與葉色變化調整位置。</p>
+          <p>${escapeHTML(p.lightStrategy || `${p.light}；觀察新葉大小、節間距離與葉色變化調整位置。`)}</p>
           <div class="divider"></div>
           <h3>常見錯誤</h3>
-          <p>固定照日期澆水、忽略通風與盆器排水，或未追蹤新葉與根系反應。</p>
+          <p>${escapeHTML(p.commonMistakes || '固定照日期澆水、忽略通風與盆器排水，或未追蹤新葉與根系反應。')}</p>
           <div class="divider"></div>
           <h3>植物趣事</h3>
           <p>${escapeHTML(p.funFact)}</p>
@@ -1244,7 +1254,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <p>${escapeHTML(p.beginnerTip)}</p>
           <div class="divider"></div>
           <h3>進階照護</h3>
-          <p>${escapeHTML(p.expertNote)}</p>
+          <p>${escapeHTML(p.advancedCare || p.expertNote)}</p>
           <div class="divider"></div>
           <p>🪴 建議：大約 ${p.interval} 天檢查一次土壤，不要照天數盲目澆水。</p>
           ${renderAirPlantReminder(p)}
