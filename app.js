@@ -79,6 +79,21 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       return plant.easeLevel || getEaseLevelByName(plant.name, plant.legacyDifficulty);
     }
 
+    function getPlantManagementLabel(plant) {
+      if (!plant) return '未分類';
+      const info = plant.name ? plantDatabase.find(p => p.name === plant.name) : null;
+      return plant.managementType
+        || (info && info.managementType)
+        || plant.easeLevel
+        || (info && info.easeLevel)
+        || plant.category
+        || (info && info.category)
+        || plant.difficulty
+        || plant.legacyDifficulty
+        || (info && (info.difficulty || info.legacyDifficulty))
+        || '未分類';
+    }
+
     function normalizeEaseLevel(ease) {
       const legacyFirst = '\u7b2c\u4e00\u76c6\u9996\u9078';
       const legacyVeryEasy = '\u5f88\u597d\u990a';
@@ -163,8 +178,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     function filterPlantDatabase(category = '全部', keyword = '') {
       const q = keyword.trim().toLowerCase();
       return sortPlantsByEase(plantDatabase.map(ensurePlantKnowledge).filter(p => {
-        const matchCategory = category === '全部' || getEaseLevel(p) === category || getPlantCategory(p) === category || maintenanceProfile(p) === category;
-        const haystack = `${p.name} ${p.easeLevel} ${maintenanceProfile(p)} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
+        const managementLabel = getPlantManagementLabel(p);
+        const matchCategory = category === '全部' || managementLabel === category || getEaseLevel(p) === category || getPlantCategory(p) === category || maintenanceProfile(p) === category;
+        const haystack = `${p.name} ${p.managementType} ${p.easeLevel} ${managementLabel} ${maintenanceProfile(p)} ${getPlantCategory(p)} ${p.light} ${p.watering} ${p.note} ${p.personality} ${p.originStory} ${p.funFact} ${p.beginnerTip} ${p.expertNote}`.toLowerCase();
         const matchKeyword = !q || haystack.includes(q);
         return matchCategory && matchKeyword;
       }));
@@ -258,7 +274,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
 
     function maintenanceProfile(plant) {
       const info = getPlantInfo(plant.name || plant);
-      if (info.managementType) return info.managementType;
+      const source = typeof plant === 'string' ? info : { ...info, ...plant };
+      const label = getPlantManagementLabel(source);
+      if (label !== '未分類') return label;
       const category = getPlantCategory(info);
       const ease = normalizeEaseLevel(getEaseLevel(info));
       if (isAirPlant(info)) return '附生型';
@@ -599,7 +617,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       const factRead = academySettings().plantFunFactDates[todayISO()];
       return `<div class="card">
           <h3>今日植物趣事</h3>
-          <p class="subtitle">${escapeHTML(plantFact.name)}｜${escapeHTML(maintenanceProfile(plantFact))}</p>
+          <p class="subtitle">${escapeHTML(plantFact.name)}｜養護型態：${escapeHTML(getPlantManagementLabel(plantFact))}</p>
           <p>${escapeHTML(plantFact.funFact)}</p>
           <div class="divider"></div>
           <p class="hint">個性：${escapeHTML(plantFact.personality)}</p>
@@ -790,7 +808,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
             </div>
             <span>${abnormal ? '👀' : needsWater ? '💧' : '🌿'}</span>
           </div>
-          <p class="hint">管理難度：${escapeHTML(maintenanceProfile(p))}｜介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}</p>
+          <p class="hint">養護型態：${escapeHTML(getPlantManagementLabel(p))}｜介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}</p>
           <p class="hint">上次澆水：${formatDate(p.lastWateredAt)}｜下次建議：${formatDate(next)}</p>
           <p style="margin-top:10px;">${advice}</p>
           <div class="actions">
@@ -819,7 +837,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
             <p class="meta">暱稱：${escapeHTML(p.nickname || '未命名')}</p>
             <p class="meta">位置：${escapeHTML(p.location || '未設定')}</p>
             <div class="divider"></div>
-            <p>管理難度 / 養護型態：${escapeHTML(maintenanceProfile(p))}</p>
+            <p>養護型態：${escapeHTML(getPlantManagementLabel(p))}</p>
             <p>介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜盆器：${escapeHTML(environmentValue(p, 'potMaterial', p.potSize || '未記錄'))}</p>
             <p>光照：${escapeHTML(p.light || info.light)}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}｜濕度：${escapeHTML(environmentValue(p, 'humidity', '未記錄'))}</p>
             <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
@@ -902,11 +920,11 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       const list = filterPlantDatabase(selectedAddCategory, addPlantSearch);
       selectedBox.innerHTML = `
         <strong>目前選擇：${escapeHTML(selected.name)}</strong>
-        <p class="hint">管理難度：${escapeHTML(maintenanceProfile(selected))}｜約 ${selected.interval} 天檢查水分</p>`;
+        <p class="hint">養護型態：${escapeHTML(getPlantManagementLabel(selected))}｜約 ${selected.interval} 天檢查水分</p>`;
       count.textContent = `找到 ${list.length} 種植物`;
       picker.innerHTML = list.length ? list.map(p => `
         <button type="button" class="plant-option ${p.name === selectedAddPlantName ? 'active' : ''}" onclick='chooseAddPlant(${JSON.stringify(p.name)})'>
-          <span><strong>${escapeHTML(p.name)}</strong><small>養護型態：${escapeHTML(maintenanceProfile(p))}｜${escapeHTML(p.light)}</small></span>
+          <span><strong>${escapeHTML(p.name)}</strong><small>養護型態：${escapeHTML(getPlantManagementLabel(p))}｜${escapeHTML(p.light)}</small></span>
           <span>${p.name === selectedAddPlantName ? '✓' : '›'}</span>
         </button>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換個關鍵字，例如「蘭」「蕨」「多肉」「薄荷」。</p></div>`;
     }
@@ -931,6 +949,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         lastWateredAt: document.getElementById('add-watered').value || todayISO(),
         waterIntervalDays: info.interval,
         easeLevel: getEaseLevel(info),
+        managementType: getPlantManagementLabel(info),
         healthStatus: document.getElementById('add-health').value,
         notes: document.getElementById('add-notes').value.trim(),
         createdAt: now,
@@ -965,7 +984,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <div class="divider"></div>
           <h3>目前狀態</h3>
           <p>🌿 ${escapeHTML(p.healthStatus || '健康')}</p>
-          <p>⭐ 管理難度：${escapeHTML(maintenanceProfile(p))}｜水分檢查基準：約 ${p.waterIntervalDays || info.interval} 天</p>
+          <p>⭐ 養護型態：${escapeHTML(getPlantManagementLabel(p))}｜水分檢查基準：約 ${p.waterIntervalDays || info.interval} 天</p>
           <p>上次澆水：${formatDate(p.lastWateredAt)}</p>
           <p>建議下次檢查：${formatDate(nextWaterDate(p))}</p>
           <div class="actions">
@@ -996,7 +1015,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         <div class="card">
           <h3>專業照護資訊</h3>
           <p>🌏 原生棲地：${escapeHTML(info.nativeHabitat || info.originStory)}</p>
-          <p>🪴 介質偏好：${escapeHTML(info.substratePreference || `依 ${maintenanceProfile(p)} 管理，確保排水、保水與根系通氣平衡。`)}</p>
+          <p>🪴 介質偏好：${escapeHTML(info.substratePreference || `依 ${getPlantManagementLabel(p)} 管理，確保排水、保水與根系通氣平衡。`)}</p>
           <p>💧 澆水策略：${escapeHTML(info.wateringStrategy || info.watering)}</p>
           <p>☀️ 光照策略：${escapeHTML(info.lightStrategy || info.light)}</p>
           <p>⚠️ 常見錯誤：${escapeHTML(info.commonMistakes || '固定照日期澆水、忽略通風與盆器排水、未追蹤新葉與根系反應。')}</p>
@@ -1203,7 +1222,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       if (!listEl || !countEl) return;
       const list = filterPlantDatabase(selectedKnowledgeCategory, knowledgeSearch);
       countEl.textContent = `找到 ${list.length} 種植物`;
-      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><span class="ease-pill">${escapeHTML(maintenanceProfile(p))}</span><p class="hint">${escapeHTML(getPlantCategory(p))}｜約 ${p.interval} 天檢查水分</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換管理難度，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
+      listEl.innerHTML = list.length ? list.map(p => `<div class="knowledge-item" onclick='openKnowledge(${JSON.stringify(p.name)})'><div><strong>${p.name}</strong><span class="ease-pill">${escapeHTML(getPlantManagementLabel(p))}</span><p class="hint">養護型態：${escapeHTML(getPlantManagementLabel(p))}｜${escapeHTML(getPlantCategory(p))}｜約 ${p.interval} 天檢查水分</p></div><span>›</span></div>`).join('') : `<div class="empty"><h3>找不到植物</h3><p>可以換管理難度，或搜尋「蘭」「竹芋」「仙人掌」「香草」。</p></div>`;
     }
 
     function openKnowledge(name) {
@@ -1218,7 +1237,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         <button class="light small" onclick="setScreen('knowledge')">← 返回植物資料庫</button>
         <div class="card">
           <h2>${escapeHTML(p.name)}</h2>
-          <p class="subtitle">管理難度：${escapeHTML(maintenanceProfile(p))}</p><span class="ease-pill">${escapeHTML(getEaseAdvice(p))}</span>
+          <p class="subtitle">管理類型：${escapeHTML(getPlantManagementLabel(p))}</p><span class="ease-pill">養護型態：${escapeHTML(getPlantManagementLabel(p))}</span>
           <div class="divider"></div>
           <h3>適合誰</h3>
           <p>${escapeHTML(getSuitableFor(p))}</p>
@@ -1236,7 +1255,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <p>${escapeHTML(p.originStory)}</p>
           <div class="divider"></div>
           <h3>介質偏好</h3>
-          <p>${escapeHTML(p.substratePreference || `依 ${maintenanceProfile(p)} 管理，優先確認排水、保水與根系通氣平衡。`)}</p>
+          <p>${escapeHTML(p.substratePreference || `依 ${getPlantManagementLabel(p)} 管理，優先確認排水、保水與根系通氣平衡。`)}</p>
           <div class="divider"></div>
           <h3>澆水策略</h3>
           <p>${escapeHTML(p.wateringStrategy || `${p.watering}；實際操作仍以介質乾濕、盆重與葉片張力判斷。`)}</p>
@@ -1265,7 +1284,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     function startAddPlant(name) {
       const info = getPlantInfo(name);
       selectedAddPlantName = info.name;
-      selectedAddCategory = maintenanceProfile(info);
+      selectedAddCategory = getPlantManagementLabel(info);
       addPlantSearch = '';
       setScreen('add');
     }
@@ -1274,7 +1293,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       const summary = careSummary30Days();
       const abnormalPlants = appData.plants.filter(p => p.healthStatus && p.healthStatus !== '健康').length;
       const profiles = appData.plants.reduce((map, plant) => {
-        const key = maintenanceProfile(plant);
+        const key = getPlantManagementLabel(plant);
         map[key] = (map[key] || 0) + 1;
         return map;
       }, {});
