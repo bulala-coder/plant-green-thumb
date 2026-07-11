@@ -11,6 +11,8 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     const easeFilterButtons = easeCategories.filter(c => c !== '全部');
     const easeRank = Object.fromEntries(easeCategories.map((level, index) => [level, index]));
     const maintenanceCategories = ['低維護', '中等維護', '高濕敏感', '強光耐旱', '附生型', '開花觀賞', '特殊收藏'];
+    const careTypes = ['澆水', '觀察', '施肥', '修剪', '換盆', '除蟲', '新葉', '新芽', '花苞', '開花', '落花', '落葉', '根系觀察', '病蟲害', '介質調整'];
+    const growthEventTypes = ['新葉', '新芽', '花苞', '開花', '落花', '落葉', '根系觀察', '病蟲害', '介質調整'];
 
     const easeLevelGroups = {
       '入門收藏': ['黃金葛', '虎尾蘭', '金錢樹', '吊蘭', '心葉蔓綠絨', '合果芋', '粗肋草', '圓葉椒草', '豆瓣綠', '酒瓶蘭'],
@@ -212,7 +214,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     function blankData() {
       return {
         appName: '植物綠手指',
-        version: '2.0.0',
+        version: '2.1.0',
         plants: [],
         careLogs: [],
         settings: { theme: 'light', reminderPreference: 'basic', onboardingCompleted: false, academy: { answeredQuizDates: {}, readCards: {}, plantFunFactDates: {} } }
@@ -246,6 +248,41 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       if (!dateString) return '尚未記錄';
       const d = new Date(dateString + 'T00:00:00');
       return `${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+    }
+
+    function formatFullDate(dateString) {
+      return dateString || '未記錄';
+    }
+
+    function displayValue(value) {
+      return value === undefined || value === null || value === '' ? '未記錄' : String(value);
+    }
+
+    function parsePrice(value) {
+      if (value === undefined || value === null || value === '') return 0;
+      const n = Number(String(value).replace(/[^\d.]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatPrice(value) {
+      const n = parsePrice(value);
+      return n > 0 ? `NT$${n.toLocaleString('zh-Hant')}` : '未記錄';
+    }
+
+    function isAffirmative(value) {
+      return value === true || value === '是';
+    }
+
+    function yesNoValue(value) {
+      if (value === undefined || value === null || value === '') return '未記錄';
+      return isAffirmative(value) ? '是' : '否';
+    }
+
+    function renderCollectionTags(plant) {
+      const tags = [];
+      if (isAffirmative(plant.isVariegated)) tags.push('斑葉');
+      if (isAffirmative(plant.isFlowering)) tags.push('開花中');
+      return tags.length ? `<div class="tag-row">${tags.map(tag => `<span class="status-tag">${tag}</span>`).join('')}</div>` : '';
     }
 
     function addDays(dateString, days) {
@@ -311,6 +348,10 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       return top ? `${top[0]}（${top[1]} 次）` : '尚無紀錄';
     }
 
+    function mostCommonGrowthEvent(logs) {
+      return mostCommonCareType(logs.filter(log => growthEventTypes.includes(log.type)));
+    }
+
     function averageWaterInterval(logs) {
       const dates = [...new Set(logs.filter(l => l.type === '澆水' && l.date).map(l => l.date))].sort();
       if (dates.length < 2) return '資料不足';
@@ -326,16 +367,47 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         waters: logs.filter(l => l.type === '澆水').length,
         observations: logs.filter(l => l.type === '觀察').length,
         fertilizers: logs.filter(l => l.type === '施肥').length,
+        newLeaves: logs.filter(l => l.type === '新葉').length,
+        newBuds: logs.filter(l => l.type === '新芽').length,
+        blooms: logs.filter(l => l.type === '開花').length,
         abnormal: logs.filter(l => /葉黃|下垂|蟲害|爛|焦|異常|診斷|不確定/.test(l.note || '')).length,
         avgWaterInterval: averageWaterInterval(logs),
-        topType: mostCommonCareType(logs)
+        topType: mostCommonCareType(logs),
+        topGrowthEvent: mostCommonGrowthEvent(logs)
       };
+    }
+
+    function collectionValueTotal() {
+      return appData.plants.reduce((sum, plant) => sum + parsePrice(plant.price), 0);
+    }
+
+    function collectionTimeline(plant, logs) {
+      const items = [];
+      const acquiredDate = plant.acquiredAt || (plant.createdAt ? plant.createdAt.slice(0, 10) : '');
+      items.push({
+        date: acquiredDate || '未記錄',
+        type: '入手',
+        note: `${displayValue(plant.source)}${parsePrice(plant.price) ? `，${formatPrice(plant.price)}` : ''}${plant.cultivar ? `，${plant.cultivar}` : ''}`
+      });
+      logs.forEach(log => {
+        const isKey = ['換盆', '新葉', '新芽', '花苞', '開花', '病蟲害', '根系觀察', '介質調整'].includes(log.type);
+        items.push({
+          date: log.date || '未記錄',
+          type: isKey ? log.type : '其他照護紀錄',
+          note: log.note || log.type
+        });
+      });
+      return items.sort((a, b) => {
+        if (a.date === '未記錄') return 1;
+        if (b.date === '未記錄') return -1;
+        return b.date.localeCompare(a.date);
+      });
     }
 
     const LEGACY_KNOWLEDGE_TEST_TYPE = '\u5c0f\u6e2c\u9a57';
 
     function carePoints(type) {
-      const pointMap = { '觀察': 5, '澆水': 10, '施肥': 12, '修剪': 12, '換盆': 20, '除蟲': 18, '知識測驗': 8, [LEGACY_KNOWLEDGE_TEST_TYPE]: 8, '知識卡': 4, '植物趣事': 4, '學習': 2 };
+      const pointMap = { '觀察': 5, '澆水': 10, '施肥': 12, '修剪': 12, '換盆': 20, '除蟲': 18, '新葉': 6, '新芽': 6, '花苞': 7, '開花': 8, '落花': 5, '落葉': 5, '根系觀察': 8, '病蟲害': 10, '介質調整': 10, '知識測驗': 8, [LEGACY_KNOWLEDGE_TEST_TYPE]: 8, '知識卡': 4, '植物趣事': 4, '學習': 2 };
       return pointMap[type] || 5;
     }
 
@@ -837,6 +909,10 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
             <p class="meta">暱稱：${escapeHTML(p.nickname || '未命名')}</p>
             <p class="meta">位置：${escapeHTML(p.location || '未設定')}</p>
             <div class="divider"></div>
+            <p>入手日期：${escapeHTML(formatFullDate(p.acquiredAt))}｜來源：${escapeHTML(displayValue(p.source))}</p>
+            <p>品種 / cultivar：${escapeHTML(displayValue(p.cultivar))}</p>
+            ${renderCollectionTags(p)}
+            <div class="divider"></div>
             <p>養護型態：${escapeHTML(getPlantManagementLabel(p))}</p>
             <p>介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜盆器：${escapeHTML(environmentValue(p, 'potMaterial', p.potSize || '未記錄'))}</p>
             <p>光照：${escapeHTML(p.light || info.light)}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}｜濕度：${escapeHTML(environmentValue(p, 'humidity', '未記錄'))}</p>
@@ -869,6 +945,21 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <input id="add-nickname" placeholder="例如：小綠" />
           <label>放置位置</label>
           <input id="add-location" placeholder="例如：客廳窗邊" />
+          <div class="divider"></div>
+          <h3>收藏履歷</h3>
+          <label>入手日期</label>
+          <input id="add-acquired-at" type="date" />
+          <label>來源</label>
+          <select id="add-source"><option value="">未記錄</option><option>花市</option><option>園藝店</option><option>網購</option><option>朋友分株</option><option>自己繁殖</option><option>交換</option><option>其他</option></select>
+          <label>入手價格</label>
+          <input id="add-price" inputmode="decimal" placeholder="例如：250，可空白" />
+          <label>品種 / cultivar</label>
+          <input id="add-cultivar" placeholder="例如：斑葉品種、園藝品種名，可空白" />
+          <label>是否斑葉</label>
+          <select id="add-variegated"><option selected>否</option><option>是</option></select>
+          <label>是否開花中</label>
+          <select id="add-flowering"><option selected>否</option><option>是</option></select>
+          <div class="divider"></div>
           <label>光照程度</label>
           <select id="add-light"><option>強光</option><option selected>明亮散射光</option><option>半日照</option><option>陰暗</option></select>
           <label>盆器大小</label>
@@ -938,6 +1029,12 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         name,
         nickname: document.getElementById('add-nickname').value.trim(),
         location: document.getElementById('add-location').value.trim(),
+        acquiredAt: document.getElementById('add-acquired-at').value,
+        source: document.getElementById('add-source').value,
+        price: document.getElementById('add-price').value.trim(),
+        cultivar: document.getElementById('add-cultivar').value.trim(),
+        isVariegated: document.getElementById('add-variegated').value,
+        isFlowering: document.getElementById('add-flowering').value,
         light: document.getElementById('add-light').value,
         potSize: document.getElementById('add-pot').value,
         potMaterial: document.getElementById('add-pot-material').value,
@@ -976,6 +1073,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       const info = getPlantInfo(p.name);
       const logs = appData.careLogs.filter(l => l.plantId === id).sort((a,b) => b.date.localeCompare(a.date));
       const summary30 = careSummary30Days(id);
+      const timeline = collectionTimeline(p, logs);
       document.getElementById('screen-detail').innerHTML = `
         <button class="light small" onclick="setScreen('plants')">← 返回</button>
         <div class="card">
@@ -993,13 +1091,36 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           </div>
         </div>
         <div class="card">
+          <h3>收藏履歷</h3>
+          <p>入手日期：${escapeHTML(formatFullDate(p.acquiredAt))}</p>
+          <p>來源：${escapeHTML(displayValue(p.source))}</p>
+          <p>入手價格：${escapeHTML(formatPrice(p.price))}</p>
+          <p>品種 / cultivar：${escapeHTML(displayValue(p.cultivar))}</p>
+          <p>是否斑葉：${escapeHTML(yesNoValue(p.isVariegated))}</p>
+          <p>是否開花中：${escapeHTML(yesNoValue(p.isFlowering))}</p>
+          ${renderCollectionTags(p)}
+        </div>
+        <div class="card">
           <h3>目前環境參數</h3>
           <p>栽培環境：${escapeHTML(environmentValue(p, 'growingSetup', '未記錄'))}</p>
           <p>介質：${escapeHTML(environmentValue(p, 'substrateType', '未記錄'))}｜盆器：${escapeHTML(environmentValue(p, 'potMaterial', p.potSize || '未記錄'))}</p>
           <p>光照：${escapeHTML(p.light || info.light)}｜通風：${escapeHTML(environmentValue(p, 'ventilation', '未記錄'))}｜濕度：${escapeHTML(environmentValue(p, 'humidity', '未記錄'))}</p>
         </div>
         <div class="card">
-          <h3>編輯環境參數</h3>
+          <h3>編輯收藏與環境參數</h3>
+          <label>入手日期</label>
+          <input id="edit-acquired-at" type="date" value="${escapeHTML(p.acquiredAt || '')}" />
+          <label>來源</label>
+          <select id="edit-source"><option value="" ${selectedAttr(p.source || '', '')}>未記錄</option><option ${selectedAttr(p.source, '花市')}>花市</option><option ${selectedAttr(p.source, '園藝店')}>園藝店</option><option ${selectedAttr(p.source, '網購')}>網購</option><option ${selectedAttr(p.source, '朋友分株')}>朋友分株</option><option ${selectedAttr(p.source, '自己繁殖')}>自己繁殖</option><option ${selectedAttr(p.source, '交換')}>交換</option><option ${selectedAttr(p.source, '其他')}>其他</option></select>
+          <label>入手價格</label>
+          <input id="edit-price" inputmode="decimal" value="${escapeHTML(p.price || '')}" placeholder="例如：250，可空白" />
+          <label>品種 / cultivar</label>
+          <input id="edit-cultivar" value="${escapeHTML(p.cultivar || '')}" placeholder="可空白" />
+          <label>是否斑葉</label>
+          <select id="edit-variegated"><option ${selectedAttr(p.isVariegated || '否', '否')}>否</option><option ${selectedAttr(p.isVariegated, '是')}>是</option></select>
+          <label>是否開花中</label>
+          <select id="edit-flowering"><option ${selectedAttr(p.isFlowering || '否', '否')}>否</option><option ${selectedAttr(p.isFlowering, '是')}>是</option></select>
+          <div class="divider"></div>
           <label>通風</label>
           <select id="edit-ventilation"><option ${selectedAttr(p.ventilation, '良好')}>良好</option><option ${selectedAttr(p.ventilation, '普通')}>普通</option><option ${selectedAttr(p.ventilation, '悶')}>悶</option></select>
           <label>濕度</label>
@@ -1010,7 +1131,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           <select id="edit-substrate"><option ${selectedAttr(p.substrateType, '培養土')}>培養土</option><option ${selectedAttr(p.substrateType, '多肉土')}>多肉土</option><option ${selectedAttr(p.substrateType, '顆粒介質')}>顆粒介質</option><option ${selectedAttr(p.substrateType, '水苔')}>水苔</option><option ${selectedAttr(p.substrateType, '樹皮混合')}>樹皮混合</option><option ${selectedAttr(p.substrateType, '無介質')}>無介質</option><option ${selectedAttr(p.substrateType, '其他')}>其他</option></select>
           <label>栽培環境</label>
           <select id="edit-growing-setup"><option ${selectedAttr(p.growingSetup, '室內')}>室內</option><option ${selectedAttr(p.growingSetup, '陽台')}>陽台</option><option ${selectedAttr(p.growingSetup, '戶外')}>戶外</option><option ${selectedAttr(p.growingSetup, '高濕箱')}>高濕箱</option><option ${selectedAttr(p.growingSetup, '溫室')}>溫室</option><option ${selectedAttr(p.growingSetup, '水耕')}>水耕</option></select>
-          <button class="full secondary" onclick="savePlantEnvironment('${p.id}')">更新環境參數</button>
+          <button class="full secondary" onclick="savePlantEnvironment('${p.id}')">更新收藏資料</button>
         </div>
         <div class="card">
           <h3>專業照護資訊</h3>
@@ -1041,6 +1162,12 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
           ${logs.length === 0 ? '<p class="hint">尚無照護紀錄。</p>' : logs.map(l => `<div class="list-log"><strong>${formatDate(l.date)}｜${escapeHTML(l.type)}</strong><p class="hint">${escapeHTML(l.note || '無備註')}</p></div>`).join('')}
           <button class="full secondary" onclick="openLog('${p.id}')">+ 新增紀錄</button>
         </div>
+        <div class="card">
+          <h3>收藏時間線</h3>
+          <div class="timeline-list">
+            ${timeline.map(item => `<div class="timeline-item"><strong>${escapeHTML(item.date)}｜${escapeHTML(item.type)}</strong><p class="hint">${escapeHTML(item.note || '未記錄')}</p></div>`).join('')}
+          </div>
+        </div>
         <button class="full danger" onclick="deletePlant('${p.id}')">刪除此植物</button>`;
     }
 
@@ -1053,6 +1180,12 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     function savePlantEnvironment(id) {
       const p = appData.plants.find(x => x.id === id);
       if (!p) return;
+      p.acquiredAt = document.getElementById('edit-acquired-at').value;
+      p.source = document.getElementById('edit-source').value;
+      p.price = document.getElementById('edit-price').value.trim();
+      p.cultivar = document.getElementById('edit-cultivar').value.trim();
+      p.isVariegated = document.getElementById('edit-variegated').value;
+      p.isFlowering = document.getElementById('edit-flowering').value;
       p.ventilation = document.getElementById('edit-ventilation').value;
       p.humidity = document.getElementById('edit-humidity').value;
       p.potMaterial = document.getElementById('edit-pot-material').value;
@@ -1062,7 +1195,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       saveData();
       renderAll();
       renderDetail(id);
-      showToast('環境參數已更新。');
+      showToast('收藏資料已更新。');
     }
 
     function renderLog(id) {
@@ -1074,11 +1207,12 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         <p class="subtitle">${escapeHTML(p.name)}「${escapeHTML(p.nickname || '未命名')}」</p>
         <div class="card">
           <label>照護類型</label>
-          <select id="log-type"><option>澆水</option><option>施肥</option><option>修剪</option><option>換盆</option><option>除蟲</option><option>觀察</option></select>
+          <select id="log-type">${careTypes.map(type => `<option>${type}</option>`).join('')}</select>
           <label>日期</label>
           <input id="log-date" type="date" value="${todayISO()}" />
           <label>備註</label>
-          <textarea id="log-note" placeholder="例如：土壤變乾，澆到盆底出水"></textarea>
+          <textarea id="log-note" placeholder="例：換盆可記錄新盆器、新介質、是否修根、根況觀察、換盆後狀態；開花可記錄花梗、花苞數與開花狀態。"></textarea>
+          <p class="hint">若選「換盆」，建議記錄：新盆器、新介質、是否修根、根況觀察、換盆後狀態。</p>
           <p class="hint">記錄澆水前，請先摸土，確認土壤 2 公分以下偏乾再澆。</p>
           <button class="full" onclick="saveLog('${id}')">儲存紀錄</button>
         </div>`;
@@ -1292,6 +1426,9 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
     function renderAnalysis() {
       const summary = careSummary30Days();
       const abnormalPlants = appData.plants.filter(p => p.healthStatus && p.healthStatus !== '健康').length;
+      const collectionValue = collectionValueTotal();
+      const floweringCount = appData.plants.filter(p => isAffirmative(p.isFlowering)).length;
+      const variegatedCount = appData.plants.filter(p => isAffirmative(p.isVariegated)).length;
       const profiles = appData.plants.reduce((map, plant) => {
         const key = getPlantManagementLabel(plant);
         map[key] = (map[key] || 0) + 1;
@@ -1309,11 +1446,17 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
             <div class="stat"><strong>${summary.abnormal}</strong><span>異常紀錄數</span></div>
             <div class="stat"><strong>${summary.avgWaterInterval}</strong><span>平均澆水間隔</span></div>
             <div class="stat"><strong>${escapeHTML(summary.topType)}</strong><span>最常照護類型</span></div>
+            <div class="stat"><strong>${summary.newLeaves}</strong><span>新葉紀錄</span></div>
+            <div class="stat"><strong>${summary.newBuds}</strong><span>新芽紀錄</span></div>
+            <div class="stat"><strong>${summary.blooms}</strong><span>開花紀錄</span></div>
           </div>
+          <p class="hint" style="margin-top:10px;">最常出現的生長事件：${escapeHTML(summary.topGrowthEvent)}</p>
         </div>
         <div class="card">
           <h3>收藏狀態摘要</h3>
           <p>收藏植物：${appData.plants.length} 筆｜異常狀態：${abnormalPlants} 筆</p>
+          <p>收藏總價值：${collectionValue > 0 ? `NT$${collectionValue.toLocaleString('zh-Hant')}` : '未記錄'}</p>
+          <p>開花中收藏：${floweringCount} 筆｜斑葉收藏：${variegatedCount} 筆</p>
           <p>養護型態分布：${Object.entries(profiles).map(([k, v]) => `${escapeHTML(k)} ${v}`).join('｜') || '尚無資料'}</p>
           <button class="full secondary" onclick="setScreen('academy')">查看能力系統</button>
         </div>`;
@@ -1345,7 +1488,7 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
         <div class="card">
           <h3>版本資訊</h3>
           <p>產品名稱：植物綠手指</p>
-          <p>版本：v2.0 專案結構整理版</p>
+          <p>版本：v2.1 植物收藏履歷版</p>
           <p>目標使用者：植物玩家、園藝愛好者、植物達人</p>
           <p>資料儲存：本機瀏覽器 localStorage</p>
           <p>部署方式：GitHub Pages</p>
@@ -1423,6 +1566,6 @@ const STORAGE_KEY = 'plantGreenThumb.v1';
       });
     });
 
-    appData.version = '2.0.0';
+    appData.version = '2.1.0';
     saveData();
     renderAll();

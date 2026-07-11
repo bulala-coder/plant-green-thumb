@@ -215,6 +215,35 @@
       margin: 10px 0;
     }
 
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f3ead8;
+      color: #7a5528;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .timeline-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .timeline-item {
+      border-left: 3px solid var(--green);
+      padding: 4px 0 4px 12px;
+    }
+
 
     .ease-guide {
       display: grid;
